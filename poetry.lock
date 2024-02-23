@@ -1084,13 +1084,13 @@ files = [
 
 [[package]]
 name = "trove-classifiers"
-version = "2024.2.22"
+version = "2024.2.23"
 description = "Canonical source for classifiers on PyPI (pypi.org)."
 optional = false
 python-versions = "*"
 files = [
-    {file = "trove-classifiers-2024.2.22.tar.gz", hash = "sha256:458650355240a16a98bb430ddac088412af48a86093d400206f09030eb595e8a"},
-    {file = "trove_classifiers-2024.2.22-py3-none-any.whl", hash = "sha256:42d63b69107462dfbfb2b0ce01f8738ca7900b89cfa7dc5478f0ce557ca22adb"},
+    {file = "trove-classifiers-2024.2.23.tar.gz", hash = "sha256:8385160a12aac69c93fff058fb613472ed773a24a27eb3cd4b144cfbdd79f38c"},
+    {file = "trove_classifiers-2024.2.23-py3-none-any.whl", hash = "sha256:3094534b8021dc1822aadb1d11d4c7b62a854d464d19458fd0a49d6fe2b68b77"},
 ]
 
 [[package]]
