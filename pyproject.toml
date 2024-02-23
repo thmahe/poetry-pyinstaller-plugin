@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "poetry-pyinstaller-plugin"
+version = "1.0.2"
+description = "Poetry plugin to build and/or bundle executable binaries with PyInstaller"
+authors = ["Thomas Mahé <contact@tmahe.dev>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/thmahe/poetry-pyinstaller-plugin"
+keywords = ["poetry", "plugin", "pyinstaller", "binary"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Plugins",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: System :: Software Distribution",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Installation/Setup",
+    "Topic :: Utilities",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.13"
+poetry = "^1.7"
+pyinstaller = "^6.0.0"
+
+[tool.poetry.plugins."poetry.application.plugin"]
+poetry-pyinstaller-plugin = "poetry_pyinstaller_plugin.plugin:PyInstallerPlugin"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
