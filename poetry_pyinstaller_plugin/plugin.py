@@ -96,10 +96,10 @@ class PyInstallerTarget(object):
                 self.type.pyinst_flags,
                 "--name", self.prog,
                 "--noconfirm",
+                "--clean",
                 "--distpath", str(dist_path),
                 "--specpath", str(dist_path / ".specs"),
-                "--paths", str(self._site_packages),
-                "--paths", str(venv_site_package),
+                "--paths", f"{str(self._site_packages)}:{str(venv_site_package)}",
                 "--log-level=WARN",
                 "--contents-directory", f"_{self.prog}_internal",
             ]
