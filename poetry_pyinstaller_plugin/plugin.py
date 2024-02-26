@@ -188,7 +188,8 @@ class PyInstallerPlugin(ApplicationPlugin):
 
         io = event.io
 
-        io.write_line(f"Building <c1>binaries</c1> with PyInstaller <c1>Python {sys.version}</c1>")
+        if len(self._targets) > 0 :
+            io.write_line(f"Building <c1>binaries</c1> with PyInstaller <c1>Python {sys.version}</c1>")
 
         for t in self._targets:
             io.write_line(
