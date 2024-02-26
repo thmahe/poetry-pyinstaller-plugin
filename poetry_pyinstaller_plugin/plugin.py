@@ -40,6 +40,8 @@ from cleo.events.console_command_event import ConsoleCommandEvent
 from cleo.events.console_events import COMMAND, TERMINATE
 from cleo.events.event_dispatcher import EventDispatcher
 from cleo.io.io import IO
+
+from poetry.utils.env import VirtualEnv
 from poetry.console.application import Application
 from poetry.console.commands.build import BuildCommand
 from poetry.core.masonry.builders.wheel import WheelBuilder
@@ -84,8 +86,9 @@ class PyInstallerTarget(object):
             )
         return PyinstDistType(type)
 
-    def build(self):
+    def build(self, venv: VirtualEnv):
         dist_path = Path("dist", "pyinstaller")
+        venv_site_package = venv.path / "lib" / f"python{venv.version_info[0]}.{venv.version_info[1]}" / "site-packages"
 
         PyInstaller.__main__.run(
             [
@@ -96,6 +99,7 @@ class PyInstallerTarget(object):
                 "--distpath", str(dist_path),
                 "--specpath", str(dist_path / ".specs"),
                 "--paths", str(self._site_packages),
+                "--paths", str(venv_site_package),
                 "--log-level=WARN",
                 "--contents-directory", f"_{self.prog}_internal",
             ]
@@ -195,7 +199,7 @@ class PyInstallerPlugin(ApplicationPlugin):
             io.write_line(
                 f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}</debug>"
             )
-            t.build()
+            t.build(venv=command.env)
             io.write_line(
                 f"  - Built <success>{t.prog}</success> "
                 f"-> <success>'{Path('dist', 'pyinstaller', t.prog)}'</success>"
