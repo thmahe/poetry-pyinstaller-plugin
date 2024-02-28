@@ -201,32 +201,40 @@ class PyInstallerPlugin(ApplicationPlugin):
 
         if len(self._targets) > 0:
 
-            requires = [
-                f"<c1>{requirement}</c1>"
-                for requirement in self._app.poetry.package.requires
-            ]
-
-            io.write_line(f"<b>Preparing</b> PyInstaller environment with package requirements")
-            extra_index_urls = [s.url for s in self._app.poetry.get_sources()]
-
-            for p in requires:
-                io.write_line(f"  - {p}")
-
-            if event.io.is_debug():
-                for e in extra_index_urls:
-                    io.write_line(f"<debug>Including extra index URL {e}</debug>")
+            extra_indexes = {s.name: s.url for s in self._app.poetry.get_sources()}
 
             with ephemeral_environment(executable=command.env.python if command.env else None) as venv:
+                io.write_line(f"<b>Preparing</b> PyInstaller environment <debug>{venv.path}</debug>")
                 venv_pip = venv.run_pip(
                     "install",
                     "--disable-pip-version-check",
                     "--ignore-installed",
                     "--no-input",
                     "--no-cache",
-                    "--extra-index-url", "--extra-index-url ".join(extra_index_urls),
                     "pyinstaller", "certifi", "cffi",
-                    *[f"{p.name}{p.constraint}" for p in self._app.poetry.package.requires],
                 )
+
+                for requirement in self._app.poetry.package.requires:
+                    pip_r = requirement.base_pep_508_name_resolved.replace(' (', '').replace(')', '')
+
+                    extra_index_url = []
+                    if requirement.source_name:
+                        extra_index_url = ["--extra-index-url", extra_indexes.get(requirement.source_name)]
+
+                    if requirement.marker.validate({"sys_platform": sys.platform}):
+                        io.write_line(f"  - Installing <c1>{requirement}</c1>" +
+                                      (f" <debug>[{requirement.source_name}]</debug>" if requirement.source_name else ""))
+
+                        venv_pip = venv.run_pip(
+                            "install",
+                            "--disable-pip-version-check",
+                            "--ignore-installed",
+                            "--no-input",
+                            "--no-cache",
+                            *extra_index_url,
+                            pip_r,
+                        )
+
                 if event.io.is_debug():
                     io.write_line(f"<debug>{venv_pip}</debug>")
 
