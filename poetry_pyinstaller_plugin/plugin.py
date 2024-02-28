@@ -206,7 +206,15 @@ class PyInstallerPlugin(ApplicationPlugin):
                 for requirement in self._app.poetry.package.requires
             ]
 
-            io.write_line(f"<b>Preparing</b> PyInstaller environment with package requirements {', '.join(requires)}")
+            io.write_line(f"<b>Preparing</b> PyInstaller environment with package requirements")
+            extra_index_urls = [s.url for s in self._app.poetry.get_sources()]
+
+            for p in requires:
+                io.write_line(f"  - {p}")
+
+            if event.io.is_debug():
+                for e in extra_index_urls:
+                    io.write_line(f"<debug>Including extra index URL {e}</debug>")
 
             with ephemeral_environment(executable=command.env.python if command.env else None) as venv:
                 venv_pip = venv.run_pip(
@@ -215,13 +223,15 @@ class PyInstallerPlugin(ApplicationPlugin):
                     "--ignore-installed",
                     "--no-input",
                     "--no-cache",
-                    "pyinstaller", "certifi", "cffi", *[f"{p.name}{p.constraint}" for p in self._app.poetry.package.requires]
+                    "--extra-index-url", "--extra-index-url ".join(extra_index_urls),
+                    "pyinstaller", "certifi", "cffi",
+                    *[f"{p.name}{p.constraint}" for p in self._app.poetry.package.requires],
                 )
                 if event.io.is_debug():
                     io.write_line(f"<debug>{venv_pip}</debug>")
 
                 for cert in self.certifi_opt_block.get('append', []):
-                    cert_path = self._app.poetry.pyproject_path.parent / cert
+                    cert_path = (self._app.poetry.pyproject_path.parent / cert).relative_to(self._app.poetry.pyproject_path.parent)
 
                     io.write_line(f"  - Adding <c1>{cert_path}</c1> to certifi")
                     venv.run_python_script(textwrap.dedent(f"""
