@@ -27,6 +27,7 @@ import glob
 import logging
 import os
 import sys
+import textwrap
 from importlib import reload
 from pathlib import Path
 from typing import List, Dict
@@ -131,6 +132,16 @@ class PyInstallerPlugin(ApplicationPlugin):
         raise RuntimeError("Error while retrieving pyproject.toml data.")
 
     @property
+    def certifi_opt_block(self) -> Dict:
+        """
+        Get certifi config
+        """
+        data = self._app.poetry.pyproject.data
+        if data:
+            return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("certifi", {})
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
     def _use_bundle(self):
         return True in [t.bundled for t in self._targets]
 
@@ -204,10 +215,22 @@ class PyInstallerPlugin(ApplicationPlugin):
                     "--ignore-installed",
                     "--no-input",
                     "--no-cache",
-                    "pyinstaller", "cffi", *[f"{p.name}{p.constraint}" for p in self._app.poetry.package.requires]
+                    "pyinstaller", "certifi", "cffi", *[f"{p.name}{p.constraint}" for p in self._app.poetry.package.requires]
                 )
                 if event.io.is_debug():
                     io.write_line(f"<debug>{venv_pip}</debug>")
+
+                for cert in self.certifi_opt_block.get('append', []):
+                    cert_path = self._app.poetry.pyproject_path.parent / cert
+
+                    io.write_line(f"  - Adding <c1>{cert_path}</c1> to certifi")
+                    venv.run_python_script(textwrap.dedent(f"""
+                    import certifi
+                    print(certifi.where())
+                    with open("{cert_path}", "r") as include:
+                        with open(certifi.where(), 'a') as cert:
+                            cert.write(include.read())
+                    """))
 
                 io.write_line(
                     f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1>")
