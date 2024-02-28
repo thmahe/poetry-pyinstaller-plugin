@@ -31,8 +31,6 @@ from importlib import reload
 from pathlib import Path
 from typing import List, Dict
 
-import PyInstaller.__main__
-
 # Reload logging after PyInstaller import (conflicts with poetry logging)
 reload(logging)
 
@@ -41,7 +39,7 @@ from cleo.events.console_events import COMMAND, TERMINATE
 from cleo.events.event_dispatcher import EventDispatcher
 from cleo.io.io import IO
 
-from poetry.utils.env import VirtualEnv
+from poetry.utils.env import VirtualEnv, ephemeral_environment
 from poetry.console.application import Application
 from poetry.console.commands.build import BuildCommand
 from poetry.core.masonry.builders.wheel import WheelBuilder
@@ -88,22 +86,20 @@ class PyInstallerTarget(object):
 
     def build(self, venv: VirtualEnv):
         dist_path = Path("dist", "pyinstaller")
-        venv_site_package = venv.path / "lib" / f"python{venv.version_info[0]}.{venv.version_info[1]}" / "site-packages"
 
-        PyInstaller.__main__.run(
-            [
-                str(self.source),
-                self.type.pyinst_flags,
-                "--name", self.prog,
-                "--noconfirm",
-                "--clean",
-                "--distpath", str(dist_path),
-                "--specpath", str(dist_path / ".specs"),
-                "--paths", f"{str(self._site_packages)}:{str(venv_site_package)}",
-                "--log-level=WARN",
-                "--contents-directory", f"_{self.prog}_internal",
-            ]
-        )
+        venv.run(str(Path(venv.script_dirs[0]) / "pyinstaller"),
+                 *[str(self.source),
+                   self.type.pyinst_flags,
+                   "--name", self.prog,
+                   "--noconfirm",
+                   "--clean",
+                   "--distpath", str(dist_path),
+                   "--specpath", str(dist_path / ".specs"),
+                   "--paths", str(venv.site_packages),
+                   "--log-level=WARN",
+                   "--contents-directory", f"_{self.prog}_internal",
+                   ]
+                 )
 
     def bundle_wheel(self, io):
         wheels = glob.glob("*-py3-none-any.whl", root_dir="dist")
@@ -192,18 +188,33 @@ class PyInstallerPlugin(ApplicationPlugin):
 
         io = event.io
 
-        if len(self._targets) > 0 :
-            io.write_line(f"Building <c1>binaries</c1> with PyInstaller <c1>Python {sys.version}</c1>")
+        if len(self._targets) > 0:
 
-        for t in self._targets:
-            io.write_line(
-                f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}</debug>"
-            )
-            t.build(venv=command.env)
-            io.write_line(
-                f"  - Built <success>{t.prog}</success> "
-                f"-> <success>'{Path('dist', 'pyinstaller', t.prog)}'</success>"
-            )
+            requires = [
+                f"<c1>{requirement}</c1>"
+                for requirement in self._app.poetry.package.requires
+            ]
+
+            io.write_line(f"<b>Preparing</b> PyInstaller environment with package requirements {', '.join(requires)}")
+
+            with ephemeral_environment(executable=command.env.python if command.env else None) as venv:
+                venv_pip = venv.run_pip(
+                    "install",
+                    "--disable-pip-version-check",
+                    "--ignore-installed",
+                    "--no-input",
+                    "--no-cache",
+                    "pyinstaller", "cffi", *[f"{p.name}{p.constraint}" for p in self._app.poetry.package.requires]
+                )
+                if event.io.is_debug():
+                    io.write_line(f"<debug>{venv_pip}</debug>")
+
+                io.write_line(
+                    f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1>")
+                for t in self._targets:
+                    io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}</debug>")
+                    t.build(venv=venv)
+                    io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', t.prog)}'</success>")
 
     def _bundle_wheels(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
         """
