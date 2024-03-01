@@ -213,7 +213,6 @@ class PyInstallerPlugin(ApplicationPlugin):
                     "--disable-pip-version-check",
                     "--ignore-installed",
                     "--no-input",
-                    "--no-cache",
                     "pyinstaller", "certifi", "cffi",
                 )
 
@@ -233,7 +232,6 @@ class PyInstallerPlugin(ApplicationPlugin):
                             "--disable-pip-version-check",
                             "--ignore-installed",
                             "--no-input",
-                            "--no-cache",
                             *extra_index_url,
                             pip_r,
                         )
