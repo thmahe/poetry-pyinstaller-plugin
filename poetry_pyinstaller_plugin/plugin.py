@@ -69,13 +69,6 @@ class PyInstallerTarget(object):
         self.type = self._validate_type(type)
         self.bundled = bundle
 
-    @property
-    def _site_packages(self):
-        if sys.platform == "win32":
-            return Path(sys.prefix) / "Lib" / "site-packages"
-        else:
-            version = sys.version_info
-            return Path(sys.prefix) / "lib" / f"python{version.major}.{version.minor}" / "site-packages"
 
     def _validate_type(self, type: str):
         if type not in PyinstDistType.list():
