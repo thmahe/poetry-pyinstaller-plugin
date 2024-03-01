@@ -68,6 +68,7 @@ class PyInstallerTarget(object):
         self.source = Path(source).resolve()
         self.type = self._validate_type(type)
         self.bundled = bundle
+        self._platform = None
 
 
     def _validate_type(self, type: str):
@@ -78,27 +79,31 @@ class PyInstallerTarget(object):
             )
         return PyinstDistType(type)
 
-    def build(self, venv: VirtualEnv):
-        dist_path = Path("dist", "pyinstaller")
+    def build(self, venv: VirtualEnv, platform: str):
+        self._platform = platform
+        work_path = Path("build", platform)
+        dist_path = Path("dist", "pyinstaller", platform)
 
-        venv.run(str(Path(venv.script_dirs[0]) / "pyinstaller"),
-                 *[str(self.source),
-                   self.type.pyinst_flags,
-                   "--name", self.prog,
-                   "--noconfirm",
-                   "--clean",
-                   "--distpath", str(dist_path),
-                   "--specpath", str(dist_path / ".specs"),
-                   "--paths", str(venv.site_packages),
-                   "--log-level=WARN",
-                   "--contents-directory", f"_{self.prog}_internal",
-                   ]
-                 )
+        args = [
+            str(self.source),
+            self.type.pyinst_flags,
+            "--name", self.prog,
+            "--noconfirm",
+            "--clean",
+            "--workpath", str(work_path),
+            "--distpath", str(dist_path),
+            "--specpath", str(dist_path / ".specs"),
+            "--paths", str(venv.site_packages),
+            "--log-level=WARN",
+            "--contents-directory", f"_{self.prog}_internal",
+        ]
+
+        venv.run(str(Path(venv.script_dirs[0]) / "pyinstaller"), *args)
 
     def bundle_wheel(self, io):
         wheels = glob.glob("*-py3-none-any.whl", root_dir="dist")
         for wheel in wheels:
-            folder_to_add = Path("dist", "pyinstaller", self.prog)
+            folder_to_add = Path("dist", "pyinstaller", self._platform, self.prog)
 
             io.write_line(f"  - Adding <c1>{self.prog}</c1> to data scripts <debug>{wheel}</debug>")
 
@@ -195,6 +200,7 @@ class PyInstallerPlugin(ApplicationPlugin):
         if len(self._targets) > 0:
 
             extra_indexes = {s.name: s.url for s in self._app.poetry.get_sources()}
+            platform = WheelBuilder(self._app.poetry)._get_sys_tags()[0].split("-")[-1]
 
             with ephemeral_environment(executable=command.env.python if command.env else None) as venv:
                 io.write_line(f"<b>Preparing</b> PyInstaller environment <debug>{venv.path}</debug>")
@@ -244,11 +250,11 @@ class PyInstallerPlugin(ApplicationPlugin):
                     """))
 
                 io.write_line(
-                    f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1>")
+                    f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
                 for t in self._targets:
                     io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}</debug>")
-                    t.build(venv=venv)
-                    io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', t.prog)}'</success>")
+                    t.build(venv=venv, platform=platform)
+                    io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', platform, t.prog)}'</success>")
 
     def _bundle_wheels(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
         """
