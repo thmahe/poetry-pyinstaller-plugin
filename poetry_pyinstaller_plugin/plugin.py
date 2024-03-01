@@ -63,11 +63,12 @@ class PyinstDistType(enum.Enum):
 
 
 class PyInstallerTarget(object):
-    def __init__(self, prog: str, source: str, type: str = "onedir", bundle: bool = False):
+    def __init__(self, prog: str, source: str, type: str = "onedir", bundle: bool = False, noupx=False):
         self.prog = prog
         self.source = Path(source).resolve()
         self.type = self._validate_type(type)
         self.bundled = bundle
+        self.noupx = noupx
         self._platform = None
 
 
@@ -97,6 +98,9 @@ class PyInstallerTarget(object):
             "--log-level=WARN",
             "--contents-directory", f"_{self.prog}_internal",
         ]
+
+        if self.noupx:
+            args.append("--noupx")
 
         venv.run(str(Path(venv.script_dirs[0]) / "pyinstaller"), *args)
 
@@ -252,7 +256,7 @@ class PyInstallerPlugin(ApplicationPlugin):
                 io.write_line(
                     f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
                 for t in self._targets:
-                    io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}</debug>")
+                    io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''} {' NOUPX' if t.noupx else ''}</debug>")
                     t.build(venv=venv, platform=platform)
                     io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', platform, t.prog)}'</success>")
 
