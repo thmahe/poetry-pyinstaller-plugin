@@ -71,7 +71,6 @@ class PyInstallerTarget(object):
         self.noupx = noupx
         self._platform = None
 
-
     def _validate_type(self, type: str):
         if type not in PyinstDistType.list():
             raise ValueError(
@@ -206,57 +205,63 @@ class PyInstallerPlugin(ApplicationPlugin):
             extra_indexes = {s.name: s.url for s in self._app.poetry.get_sources()}
             platform = WheelBuilder(self._app.poetry)._get_sys_tags()[0].split("-")[-1]
 
-            with ephemeral_environment(executable=command.env.python if command.env else None) as venv:
-                io.write_line(f"<b>Preparing</b> PyInstaller environment <debug>{venv.path}</debug>")
-                venv_pip = venv.run_pip(
-                    "install",
-                    "--disable-pip-version-check",
-                    "--ignore-installed",
-                    "--no-input",
-                    "pyinstaller", "certifi", "cffi",
-                )
+            if command.env.is_venv():
+                venv = command.env
+            else:
+                venv = ephemeral_environment(executable=command.env.python if command.env else None)
 
-                for requirement in self._app.poetry.package.requires:
-                    pip_r = requirement.base_pep_508_name_resolved.replace(' (', '').replace(')', '')
+            io.write_line(f"<b>Preparing</b> PyInstaller environment <debug>{venv.path}</debug>")
+            venv_pip = venv.run_pip(
+                "install",
+                "--disable-pip-version-check",
+                "--ignore-installed",
+                "--no-input",
+                "pyinstaller", "certifi", "cffi",
+            )
 
-                    extra_index_url = []
-                    if requirement.source_name:
-                        extra_index_url = ["--extra-index-url", extra_indexes.get(requirement.source_name)]
+            for requirement in self._app.poetry.package.requires:
+                pip_r = requirement.base_pep_508_name_resolved.replace(' (', '').replace(')', '')
 
-                    if requirement.marker.validate({"sys_platform": sys.platform}):
-                        io.write_line(f"  - Installing <c1>{requirement}</c1>" +
-                                      (f" <debug>[{requirement.source_name}]</debug>" if requirement.source_name else ""))
+                extra_index_url = []
+                if requirement.source_name:
+                    extra_index_url = ["--extra-index-url", extra_indexes.get(requirement.source_name)]
 
-                        venv_pip = venv.run_pip(
-                            "install",
-                            "--disable-pip-version-check",
-                            "--ignore-installed",
-                            "--no-input",
-                            *extra_index_url,
-                            pip_r,
-                        )
+                if requirement.marker.validate({"sys_platform": sys.platform}):
+                    io.write_line(f"  - Installing <c1>{requirement}</c1>" +
+                                  (
+                                      f" <debug>[{requirement.source_name}]</debug>" if requirement.source_name else ""))
 
-                if event.io.is_debug():
-                    io.write_line(f"<debug>{venv_pip}</debug>")
+                    venv_pip = venv.run_pip(
+                        "install",
+                        "--disable-pip-version-check",
+                        "--ignore-installed",
+                        "--no-input",
+                        *extra_index_url,
+                        pip_r,
+                    )
 
-                for cert in self.certifi_opt_block.get('append', []):
-                    cert_path = (self._app.poetry.pyproject_path.parent / cert).relative_to(self._app.poetry.pyproject_path.parent)
+            if event.io.is_debug():
+                io.write_line(f"<debug>{venv_pip}</debug>")
 
-                    io.write_line(f"  - Adding <c1>{cert_path}</c1> to certifi")
-                    venv.run_python_script(textwrap.dedent(f"""
-                    import certifi
-                    print(certifi.where())
-                    with open("{cert_path}", "r") as include:
-                        with open(certifi.where(), 'a') as cert:
-                            cert.write(include.read())
-                    """))
+            for cert in self.certifi_opt_block.get('append', []):
+                cert_path = (self._app.poetry.pyproject_path.parent / cert).relative_to(
+                    self._app.poetry.pyproject_path.parent)
 
-                io.write_line(
-                    f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
-                for t in self._targets:
-                    io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}{' NOUPX' if t.noupx else ''}</debug>")
-                    t.build(venv=venv, platform=platform)
-                    io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', platform, t.prog)}'</success>")
+                io.write_line(f"  - Adding <c1>{cert_path}</c1> to certifi")
+                venv.run_python_script(textwrap.dedent(f"""
+                import certifi
+                print(certifi.where())
+                with open("{cert_path}", "r") as include:
+                    with open(certifi.where(), 'a') as cert:
+                        cert.write(include.read())
+                """))
+
+            io.write_line(
+                f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
+            for t in self._targets:
+                io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}{' NOUPX' if t.noupx else ''}</debug>")
+                t.build(venv=venv, platform=platform)
+                io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', platform, t.prog)}'</success>")
 
     def _bundle_wheels(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
         """
