@@ -251,7 +251,7 @@ class PyInstallerPlugin(ApplicationPlugin):
                 venv.run_python_script(textwrap.dedent(f"""
                 import certifi
                 print(certifi.where())
-                with open("{cert_path}", "r") as include:
+                with open(r"{cert_path}", "r") as include:
                     with open(certifi.where(), 'a') as cert:
                         cert.write(include.read())
                 """))
