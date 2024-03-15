@@ -33,6 +33,7 @@ Are listed in this sections all options available to configure `poetry-pyinstall
 * `source` (string): Path to your program entrypoint
 * `type` (string, **default:** `onedir`): Type of distribution format. Must be one of `onefile`, `onedir`
 * `bundle` (boolean, **default:** `false`): Include executable binary onto wheel
+* `noupx` (boolean, **default:** `false`) : Disable UPX archiving
 
 ### Examples
 
