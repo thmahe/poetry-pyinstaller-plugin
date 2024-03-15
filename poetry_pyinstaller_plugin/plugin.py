@@ -79,7 +79,7 @@ class PyInstallerTarget(object):
             )
         return PyinstDistType(type)
 
-    def build(self, venv: VirtualEnv, platform: str):
+    def build(self, venv: VirtualEnv, platform: str, collect_config: Dict):
         self._platform = platform
         work_path = Path("build", platform)
         dist_path = Path("dist", "pyinstaller", platform)
@@ -93,10 +93,19 @@ class PyInstallerTarget(object):
             "--workpath", str(work_path),
             "--distpath", str(dist_path),
             "--specpath", str(dist_path / ".specs"),
-            "--paths", str(venv.site_packages),
+            "--paths", str(venv.site_packages.path),
             "--log-level=WARN",
             "--contents-directory", f"_{self.prog}_internal",
         ]
+
+        collect_args = []
+        for collect_type, modules in collect_config.items():
+            if collect_type in ["submodules", "data", "datas", "binaries", "all"]:
+                for module in modules:
+                    collect_args.append(f"--collect-{collect_type}")
+                    collect_args.append(module)
+
+        args += collect_args
 
         if self.noupx:
             args.append("--noupx")
@@ -140,6 +149,16 @@ class PyInstallerPlugin(ApplicationPlugin):
         data = self._app.poetry.pyproject.data
         if data:
             return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("certifi", {})
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
+    def collect_opt_block(self) -> Dict:
+        """
+        Get collect config
+        """
+        data = self._app.poetry.pyproject.data
+        if data:
+            return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("collect", {})
         raise RuntimeError("Error while retrieving pyproject.toml data.")
 
     @property
@@ -260,7 +279,7 @@ class PyInstallerPlugin(ApplicationPlugin):
                 f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
             for t in self._targets:
                 io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}{' NOUPX' if t.noupx else ''}</debug>")
-                t.build(venv=venv, platform=platform)
+                t.build(venv=venv, platform=platform, collect_config=self.collect_opt_block)
                 io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', platform, t.prog)}'</success>")
 
     def _bundle_wheels(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:

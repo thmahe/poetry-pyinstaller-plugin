@@ -28,6 +28,11 @@ Are listed in this sections all options available to configure `poetry-pyinstall
     * Example: `prog-name = "my_package/script.py"`
   * `certifi` (dictionary)
     * `append` (list): List of certificates to include in `certifi.where()`
+  * `collect` (dictionary)
+    * `submodules` (list): Collect all submodules for specified package(s) or module(s)
+    * `data` (list): Collect all data for specified package(s) or module(s)
+    * `binaries` (list): Collect all binaries for specified package(s) or module(s)
+    * `all` (list): Collect all submodules, data files, and binaries for specified package(s) or module(s)
 
 `PyinstallerTarget` spec:
 * `source` (string): Path to your program entrypoint
@@ -52,6 +57,10 @@ folder-bundled = { source = "my_package/main.py", type = "onedir", bundle = true
 [tool.poetry-pyinstaller-plugin.certifi]
 # Section dedicated to certifi, required if certificates must be included in certifi store
 append = ['certs/my_cert.pem']
+
+[tool.poetry-pyinstaller-plugin.collect]
+# Collect all submodules, data files & binaries for 'package_A' and 'package_B'
+all = ['package_A', 'package_B']
 ```
 
 ## Usage
