@@ -170,7 +170,6 @@ class PyInstallerPlugin(ApplicationPlugin):
         Activation method for ApplicationPlugin
         """
         self._app = application
-        self._targets = self._parse_targets()
 
         application.event_dispatcher.add_listener(COMMAND, self._build_binaries)
         application.event_dispatcher.add_listener(TERMINATE, self._bundle_wheels)
@@ -219,6 +218,7 @@ class PyInstallerPlugin(ApplicationPlugin):
 
         io = event.io
 
+        self._targets = self._parse_targets()
         if len(self._targets) > 0:
 
             extra_indexes = {s.name: s.url for s in self._app.poetry.get_sources()}
