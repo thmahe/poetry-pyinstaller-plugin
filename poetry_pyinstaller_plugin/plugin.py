@@ -30,7 +30,7 @@ import sys
 import textwrap
 from importlib import reload
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 # Reload logging after PyInstaller import (conflicts with poetry logging)
 reload(logging)
@@ -63,12 +63,36 @@ class PyinstDistType(enum.Enum):
 
 
 class PyInstallerTarget(object):
-    def __init__(self, prog: str, source: str, type: str = "onedir", bundle: bool = False, noupx=False):
+    def __init__(self,
+        prog: str,
+        source: str,
+        type: str = "onedir",
+        bundle: bool = False,
+        strip: bool = False,
+        noupx: bool = False,
+        console: bool = False,
+        windowed: bool = False,
+        icon: Optional[str] = None,
+        uac_admin: bool = False,
+        uac_uiaccess: bool = False,
+        argv_emulation: bool = False,
+        arch: Optional[str] = None,
+    ):
         self.prog = prog
         self.source = Path(source).resolve()
         self.type = self._validate_type(type)
+
         self.bundled = bundle
+        self.strip = strip
         self.noupx = noupx
+        self.console = console
+        self.windowed = windowed
+        self.icon = icon
+        self.uac_admin = uac_admin
+        self.uac_uiaccess = uac_uiaccess
+        self.argv_emulation = argv_emulation
+        self.arch = arch
+
         self._platform = None
 
     def _validate_type(self, type: str):
@@ -107,8 +131,26 @@ class PyInstallerTarget(object):
 
         args += collect_args
 
+        if self.strip:
+            args.append("--strip")
         if self.noupx:
             args.append("--noupx")
+        if self.console:
+            args.append("--console")
+        if self.windowed:
+            args.append("--windowed")
+        if self.icon:
+            args.append("--icon")
+            args.append(self.icon)
+        if self.uac_admin:
+            args.append("--uac-admin")
+        if self.uac_uiaccess:
+            args.append("--uac-uiaccess")
+        if self.argv_emulation:
+            args.append("--argv-emulation")
+        if self.arch:
+            args.append("--target-arch")
+            args.append(self.arch)
 
         venv.run(str(Path(venv.script_dirs[0]) / "pyinstaller"), *args)
 
