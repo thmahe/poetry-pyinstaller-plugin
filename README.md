@@ -39,6 +39,14 @@ Are listed in this sections all options available to configure `poetry-pyinstall
 * `type` (string, **default:** `onedir`): Type of distribution format. Must be one of `onefile`, `onedir`
 * `bundle` (boolean, **default:** `false`): Include executable binary onto wheel
 * `noupx` (boolean, **default:** `false`) : Disable UPX archiving
+* `strip` (boolean, **default** `false`) : Apply a symbol-table strip to the executable and shared libs (not recommended for Windows)
+* `console` (boolean, **default** `false`) : Open a console window for standard i/o (default). On Windows this option has no effect if the first script is a ‘.pyw’ file.
+* `windowed` (boolean, **default** `false`) : Windows and Mac OS X: do not provide a console window for standard i/o. On Mac OS this also triggers building a Mac OS .app bundle. On Windows this option is automatically set if the first script is a ‘.pyw’ file. This option is ignored on *NIX systems.
+* `icon` (Path, **default** PyInstaller’s icon) : FILE.ico: apply the icon to a Windows executable. FILE.exe,ID: extract the icon with ID from an exe. FILE.icns: apply the icon to the .app bundle on Mac OS. Use “NONE” to not apply any icon, thereby making the OS to show some default
+* `uac_admin` (boolean, **default** `false`) : Using this option creates a Manifest that will request elevation upon application start.
+* `uac_uiaccess` (boolean, **default** `false`) : Using this option allows an elevated application to work with Remote Desktop.
+* `argv_emulation` (boolean, **default** `false`) : Enable argv emulation for macOS app bundles. If enabled, the initial open document/URL event is processed by the bootloader and the passed file paths or URLs are appended to sys.argv.
+* `arch` (string, **default** `null`) : Target architecture (macOS only; valid values: x86_64, arm64, universal2).
 
 ### Examples
 
