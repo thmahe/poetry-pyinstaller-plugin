@@ -157,11 +157,12 @@ class PyInstallerTarget(object):
     def bundle_wheel(self, io):
         wheels = glob.glob("*-py3-none-any.whl", root_dir="dist")
         for wheel in wheels:
-            folder_to_add = Path("dist", "pyinstaller", self._platform, self.prog)
+            if self._platform and self.prog:
+                folder_to_add = Path("dist", "pyinstaller", self._platform, self.prog)
 
-            io.write_line(f"  - Adding <c1>{self.prog}</c1> to data scripts <debug>{wheel}</debug>")
+                io.write_line(f"  - Adding <c1>{self.prog}</c1> to data scripts <debug>{wheel}</debug>")
 
-            add_folder_to_wheel_data_script(folder_to_add, Path("dist", wheel))
+                add_folder_to_wheel_data_script(folder_to_add, Path("dist", wheel))
 
 
 class PyInstallerPlugin(ApplicationPlugin):
@@ -270,6 +271,10 @@ class PyInstallerPlugin(ApplicationPlugin):
                 venv = command.env
             else:
                 venv = ephemeral_environment(executable=command.env.python if command.env else None)
+
+            if getattr(venv, "path", None) is None:
+                io.write_line("<fg=black;bg=yellow>Skipping PyInstaller build, requires virtualenv.</>")
+                return
 
             io.write_line(f"<b>Preparing</b> PyInstaller environment <debug>{venv.path}</debug>")
             venv_pip = venv.run_pip(
