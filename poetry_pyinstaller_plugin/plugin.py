@@ -103,7 +103,13 @@ class PyInstallerTarget(object):
             )
         return PyinstDistType(type)
 
-    def build(self, venv: VirtualEnv, platform: str, collect_config: Dict):
+    def build(self,
+              venv: VirtualEnv,
+              platform: str,
+              collect_config: Dict,
+              copy_metadata: List,
+              recursive_copy_metadata: List
+              ):
         self._platform = platform
         work_path = Path("build", platform)
         dist_path = Path("dist", "pyinstaller", platform)
@@ -151,6 +157,14 @@ class PyInstallerTarget(object):
         if self.arch:
             args.append("--target-arch")
             args.append(self.arch)
+
+        for package in copy_metadata:
+            args.append("--copy-metadata")
+            args.append(package)
+
+        for package in recursive_copy_metadata:
+            args.append("--recursive-copy-metadata")
+            args.append(package)
 
         venv.run(str(Path(venv.script_dirs[0]) / "pyinstaller"), *args)
 
@@ -202,6 +216,26 @@ class PyInstallerPlugin(ApplicationPlugin):
         data = self._app.poetry.pyproject.data
         if data:
             return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("collect", {})
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
+    def copy_metadata_opt_block(self) -> List:
+        """
+        Get copy-metadata config
+        """
+        data = self._app.poetry.pyproject.data
+        if data:
+            return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("copy-metadata", [])
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
+    def recursive_copy_metadata_opt_block(self) -> List:
+        """
+        Get recursive-copy-metadata config
+        """
+        data = self._app.poetry.pyproject.data
+        if data:
+            return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("recursive-copy-metadata", [])
         raise RuntimeError("Error while retrieving pyproject.toml data.")
 
     @property
@@ -326,7 +360,10 @@ class PyInstallerPlugin(ApplicationPlugin):
                 f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
             for t in self._targets:
                 io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}{' NOUPX' if t.noupx else ''}</debug>")
-                t.build(venv=venv, platform=platform, collect_config=self.collect_opt_block)
+                t.build(venv=venv, platform=platform, collect_config=self.collect_opt_block,
+                        copy_metadata=self.copy_metadata_opt_block,
+                        recursive_copy_metadata=self.recursive_copy_metadata_opt_block
+                        )
                 io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', platform, t.prog)}'</success>")
 
     def _bundle_wheels(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:

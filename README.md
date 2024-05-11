@@ -33,6 +33,8 @@ Are listed in this sections all options available to configure `poetry-pyinstall
     * `data` (list): Collect all data for specified package(s) or module(s)
     * `binaries` (list): Collect all binaries for specified package(s) or module(s)
     * `all` (list): Collect all submodules, data files, and binaries for specified package(s) or module(s)
+  * `copy-metadata` (list) : list of packages for which metadata must be copied
+  * `recursive-copy-metadata` (list) : list of packages for which metadata must be copied (including dependencies)
 
 `PyinstallerTarget` spec:
 * `source` (string): Path to your program entrypoint
@@ -51,6 +53,20 @@ Are listed in this sections all options available to configure `poetry-pyinstall
 ### Examples
 
 ```toml
+[tool.poetry-pyinstaller-plugin]
+# Disable UPX compression
+disable-upx = true
+
+# Include metadata from selected packages (including dependencies)
+recursive-copy-metadata = [
+    "requests"
+]
+
+# Include metadata from selected packages
+copy-metadata = [
+    "boto3"
+]
+
 [tool.poetry-pyinstaller-plugin.scripts]
 hello-world = "my_package/main.py"
 # Equivalent to
