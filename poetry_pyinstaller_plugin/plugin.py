@@ -77,6 +77,7 @@ class PyInstallerTarget(object):
         uac_uiaccess: bool = False,
         argv_emulation: bool = False,
         arch: Optional[str] = None,
+        hiddenimport: Optional[str] = None
     ):
         self.prog = prog
         self.source = Path(source).resolve()
@@ -92,6 +93,7 @@ class PyInstallerTarget(object):
         self.uac_uiaccess = uac_uiaccess
         self.argv_emulation = argv_emulation
         self.arch = arch
+        self.hiddenimport = hiddenimport
 
         self._platform = None
 
@@ -125,7 +127,7 @@ class PyInstallerTarget(object):
             "--specpath", str(dist_path / ".specs"),
             "--paths", str(venv.site_packages.path),
             "--log-level=WARN",
-            "--contents-directory", f"_{self.prog}_internal",
+            "--contents-directory", f"_{self.prog}_internal"
         ]
 
         collect_args = []
@@ -157,6 +159,9 @@ class PyInstallerTarget(object):
         if self.arch:
             args.append("--target-arch")
             args.append(self.arch)
+        if self.hiddenimport:
+            args.append("--hidden-import")
+            args.append(self.hiddenimport)
 
         for package in copy_metadata:
             args.append("--copy-metadata")
