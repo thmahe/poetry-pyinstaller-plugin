@@ -193,6 +193,17 @@ class PyInstallerPlugin(ApplicationPlugin):
         self._targets = []
 
     @property
+    def version_opt(self) -> Dict:
+        """
+        Get pyinstaller version option
+        :return: Version string of pyinstaller plugin
+        """
+        data = self._app.poetry.pyproject.data
+        if data:
+            return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("version", None)
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
     def scripts_opt_block(self) -> Dict:
         """
         Get plugins scripts options block
@@ -315,13 +326,23 @@ class PyInstallerPlugin(ApplicationPlugin):
                 io.write_line("<fg=black;bg=yellow>Skipping PyInstaller build, requires virtualenv.</>")
                 return
 
-            io.write_line(f"<b>Preparing</b> PyInstaller environment <debug>{venv.path}</debug>")
+            pyinstaller_package = "pyinstaller" if self.version_opt is None else f"pyinstaller=={self.version_opt}"
+            venv_pip = venv.run_pip(
+                "install",
+                "--disable-pip-version-check",
+                "--force-reinstall",
+                "--no-input",
+                pyinstaller_package,
+            )
+            pyinstaller_version = venv.run("pyinstaller", "--version").strip()
+            io.write_line(f"<b>Preparing</b> PyInstaller <b><c1>{pyinstaller_version}</b></c1> environment <debug>{venv.path}</debug>")
+
             venv_pip = venv.run_pip(
                 "install",
                 "--disable-pip-version-check",
                 "--ignore-installed",
                 "--no-input",
-                "pyinstaller", "certifi", "cffi",
+                "certifi", "cffi",
             )
 
             for requirement in self._app.poetry.package.requires:

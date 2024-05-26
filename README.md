@@ -23,6 +23,9 @@ If you are having troubles to install the plugin please refer to Poetry document
 Are listed in this sections all options available to configure `poetry-pyinstaller-plugin` in your `pyproject.toml`
 
 * `[tool.poetry-pyinstaller-plugin]`
+  * `version` (string) 
+    * Version of PyInstaller to use during build
+    * Does not support version constraint
   * `scripts` (dictionary) 
     * Where key is the program name and value a path to script or a `PyInstallerTarget` spec
     * Example: `prog-name = "my_package/script.py"`
@@ -55,6 +58,10 @@ Are listed in this sections all options available to configure `poetry-pyinstall
 
 ```toml
 [tool.poetry-pyinstaller-plugin]
+# Pyinstaller version (Optional, latest if not set)
+# Does not support version constraint (eg: ^6.4)
+version = "6.7.0"
+
 # Disable UPX compression
 disable-upx = true
 
