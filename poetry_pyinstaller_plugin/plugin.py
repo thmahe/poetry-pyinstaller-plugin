@@ -77,7 +77,8 @@ class PyInstallerTarget(object):
         uac_uiaccess: bool = False,
         argv_emulation: bool = False,
         arch: Optional[str] = None,
-        hiddenimport: Optional[str] = None
+        hiddenimport: Optional[str] = None,
+        runtime_hooks: Optional[List[str]] = None,
     ):
         self.prog = prog
         self.source = Path(source).resolve()
@@ -94,6 +95,7 @@ class PyInstallerTarget(object):
         self.argv_emulation = argv_emulation
         self.arch = arch
         self.hiddenimport = hiddenimport
+        self.runtime_hooks = runtime_hooks
 
         self._platform = None
 
@@ -162,6 +164,11 @@ class PyInstallerTarget(object):
         if self.hiddenimport:
             args.append("--hidden-import")
             args.append(self.hiddenimport)
+
+        if self.runtime_hooks:
+            for hook in self.runtime_hooks:
+                args.append("--runtime-hook")
+                args.append(hook)
 
         for package in copy_metadata:
             args.append("--copy-metadata")
