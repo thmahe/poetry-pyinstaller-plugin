@@ -321,6 +321,14 @@ class PyInstallerPlugin(ApplicationPlugin):
         self._targets = self._parse_targets()
         if len(self._targets) > 0:
 
+            use_bundle = True in [t.bundled for t in self._targets]
+            fmt = io.input.option("format")
+
+            if fmt == "wheel" and not use_bundle:
+                return # Skip Pyinstaller build if --format=wheel and no bundled binaries
+            if fmt == "sdist":
+                return # Skip Pyinstaller build if --format=sdist
+
             extra_indexes = {s.name: s.url for s in self._app.poetry.get_sources()}
             platform = WheelBuilder(self._app.poetry)._get_sys_tags()[0].split("-")[-1]
 
@@ -398,6 +406,9 @@ class PyInstallerPlugin(ApplicationPlugin):
                         recursive_copy_metadata=self.recursive_copy_metadata_opt_block
                         )
                 io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', platform, t.prog)}'</success>")
+
+            if fmt == "pyinstaller":
+                sys.exit(0)
 
     def _bundle_wheels(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
         """
