@@ -89,7 +89,7 @@ class PyInstallerTarget(object):
         self.noupx = noupx
         self.console = console
         self.windowed = windowed
-        self.icon = icon
+        self.icon = Path(icon).resolve() if icon else None
         self.uac_admin = uac_admin
         self.uac_uiaccess = uac_uiaccess
         self.argv_emulation = argv_emulation
