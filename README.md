@@ -14,6 +14,8 @@ Easily create executable binaries from your `pyproject.toml` using [PyInstaller]
 To install `poetry-pyinstaller-plugin` run the following command:
 ```shell
 poetry self add poetry-pyinstaller-plugin
+# or
+pipx inject poetry poetry-pyinstaller-plugin
 ```
 
 If you are having troubles to install the plugin please refer to Poetry documentation: https://python-poetry.org/docs/plugins/#using-plugins

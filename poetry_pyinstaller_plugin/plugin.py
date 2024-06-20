@@ -110,6 +110,7 @@ class PyInstallerTarget(object):
     def build(self,
               venv: VirtualEnv,
               platform: str,
+              include_config: List,
               collect_config: Dict,
               copy_metadata: List,
               recursive_copy_metadata: List
@@ -140,6 +141,19 @@ class PyInstallerTarget(object):
                     collect_args.append(module)
 
         args += collect_args
+
+        if include_config:
+            include_args = []
+            sep = ";" if "win" in platform else ":"
+
+            for item in include_config:
+                path = item if isinstance(item, str) else item.get("path")
+                if path:
+                    include_args.append("--add-data")
+                    include_args.append(f"{Path(path).resolve()}{sep}.")
+
+            args += include_args
+
 
         if self.strip:
             args.append("--strip")
@@ -239,6 +253,16 @@ class PyInstallerPlugin(ApplicationPlugin):
         data = self._app.poetry.pyproject.data
         if data:
             return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("collect", {})
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
+    def include_opt_block(self) -> List:
+        """
+        Get include config
+        """
+        data = self._app.poetry.pyproject.data
+        if data:
+            return data.get("tool", {}).get("poetry", {}).get("include", [])
         raise RuntimeError("Error while retrieving pyproject.toml data.")
 
     @property
@@ -401,7 +425,9 @@ class PyInstallerPlugin(ApplicationPlugin):
                 f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
             for t in self._targets:
                 io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}{' NOUPX' if t.noupx else ''}</debug>")
-                t.build(venv=venv, platform=platform, collect_config=self.collect_opt_block,
+                t.build(venv=venv, platform=platform,
+                        include_config=self.include_opt_block,
+                        collect_config=self.collect_opt_block,
                         copy_metadata=self.copy_metadata_opt_block,
                         recursive_copy_metadata=self.recursive_copy_metadata_opt_block
                         )
