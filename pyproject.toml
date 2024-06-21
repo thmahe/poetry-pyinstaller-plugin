@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-pyinstaller-plugin"
-version = "1.1.11"
+version = "1.1.12"
 description = "Poetry plugin to build and/or bundle executable binaries with PyInstaller"
 authors = ["Thomas Mahé <contact@tmahe.dev>"]
 license = "MIT"

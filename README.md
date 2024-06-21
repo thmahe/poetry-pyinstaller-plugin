@@ -28,6 +28,8 @@ Are listed in this sections all options available to configure `poetry-pyinstall
   * `version` (string) 
     * Version of PyInstaller to use during build
     * Does not support version constraint
+  * `exclude-include` (boolean) 
+    * Exclude poetry include. Default: `False`
   * `scripts` (dictionary) 
     * Where key is the program name and value a path to script or a `PyInstallerTarget` spec
     * Example: `prog-name = "my_package/script.py"`
@@ -40,6 +42,10 @@ Are listed in this sections all options available to configure `poetry-pyinstall
     * `all` (list): Collect all submodules, data files, and binaries for specified package(s) or module(s)
   * `copy-metadata` (list) : list of packages for which metadata must be copied
   * `recursive-copy-metadata` (list) : list of packages for which metadata must be copied (including dependencies)
+  * `include` (dictionary) : 
+    * Data file(s) to include. `{source: destination}`
+  * `package` (dictionary) : 
+    * File(s) to include with executable. `{source: destination}`
 
 `PyinstallerTarget` spec:
 * `source` (string): Path to your program entrypoint
@@ -174,3 +180,82 @@ $ pip install my-package[with-deps]
 ```
 
 Bundled binaries must be built with all dependencies installed in build environment.
+
+## Packaging additional files
+
+This plugin by default supports `tool.poetry.include`, but it can be disabled
+for more control. You can also add files *next* to the executable by using the
+`package` setting
+
+### Example
+```toml
+[tool.poetry]
+name = "my_project"
+include = [
+    { path = "README.md", format = ["sdist"] },
+]
+
+[tool.poetry-pyinstaller-plugin]
+# Disable [tool.poetry.include] and use plugin settings instead
+exclude-include = true
+
+[tool.poetry-pyinstaller-plugin.scripts]
+hello-world = "my_package/main.py"
+
+[tool.poetry-pyinstaller-plugin.package]
+# 1-1 next to executable
+"README.md" = "."
+
+# renaming next to executable
+"user/README.md" = "USER_README.md"
+
+# directory next to executable
+"docs" = "."
+
+[tool.poetry-pyinstaller-plugin.include]
+# loose files in bundle
+"icons/*" = "."
+
+# entire directory in bundle
+"images/*" = "element_images"
+```
+
+Expected directory structure:
+```text
+.
+├── build ...................... PyInstaller intermediate build directory
+├── dist ....................... Result of `poetry build` command
+│    ├── pyinstaller ............. PyInstaller output
+│    │    ├── .specs/ ............ Specs files
+│    │    └── hello-world/
+│    │          ├── docs/ ............ Packaged Docs
+│    │          │     ├── how_to.md
+│    │          │     └── if_breaks.md
+│    │          ├── my_project_internal/ ............ Onedir bundle
+│    │          │     ├── main_icon.svg ............... Included icon
+│    │          │     ├── extra_icon.svg .............. Included icon
+│    │          │     └── element_images/ ............. Included images
+│    │          │           ├── footer_icon.svg
+│    │          │           └── header_icon.svg
+│    │          ├── my_project.exe ............ Bundled program
+│    │          ├── README.md ................. Packaged Readme
+│    │          └── USER_README.md. ........... Packaged User Readme
+│    ├── my_package-0.0.0-py3-none-manylinux_2_35_x86_64.whl ... Wheel with bundled binaries
+│    └── my_package-0.0.0.tar.gz ............................... Source archive, includes README.md
+├── docs/
+│    ├── how_to.md
+│    └── if_breaks.md
+├── user/
+│    └── README.md
+├── icons/
+│    ├── main_icon.svg
+│    └── extra_icon.svg
+├── images/
+│    ├── footer_icon.md
+│    └── header_icon.svg
+├── pyproject.toml
+├── README.py
+└── my_package
+    ├── __init__.py
+    └── main.py
+```
