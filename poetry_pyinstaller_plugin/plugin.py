@@ -31,6 +31,9 @@ import textwrap
 from importlib import reload
 from pathlib import Path
 from typing import List, Dict, Optional
+from shutil import copytree, copy
+from errno import ENOTDIR, EINVAL
+
 
 # Reload logging after PyInstaller import (conflicts with poetry logging)
 reload(logging)
@@ -110,10 +113,12 @@ class PyInstallerTarget(object):
     def build(self,
               venv: VirtualEnv,
               platform: str,
-              include_config: List,
               collect_config: Dict,
               copy_metadata: List,
-              recursive_copy_metadata: List
+              recursive_copy_metadata: List,
+              poetry_include_config: List,
+              include_config: Dict,
+              package_config: Dict
               ):
         self._platform = platform
         work_path = Path("build", platform)
@@ -142,11 +147,17 @@ class PyInstallerTarget(object):
 
         args += collect_args
 
-        if include_config:
+
+        if include_config or poetry_include_config:
             include_args = []
             sep = ";" if "win" in platform else ":"
 
-            for item in include_config:
+            for source, target in include_config.items():
+                if source and target:
+                    include_args.append("--add-data")
+                    include_args.append(f"{Path(source).resolve()}{sep}{target}")
+
+            for item in poetry_include_config:
                 path = item if isinstance(item, str) else item.get("path")
                 if path:
                     include_args.append("--add-data")
@@ -193,6 +204,20 @@ class PyInstallerTarget(object):
             args.append(package)
 
         venv.run(str(Path(venv.script_dirs[0]) / "pyinstaller"), *args)
+
+        if package_config:
+            package_path = Path("dist", "pyinstaller", platform, self.prog)
+            for source, target in package_config.items():
+                destination = Path(package_path / (target if target != "." else source))
+                try:
+                    copytree(source, destination)
+                except OSError as exc: # python >2.5 or is file
+                    if exc.errno in (ENOTDIR, EINVAL, EEXIST):
+                        copy(source, destination)
+                    else:
+                        raise
+
+
 
     def bundle_wheel(self, io):
         wheels = glob.glob("*-py3-none-any.whl", root_dir="dist")
@@ -256,13 +281,35 @@ class PyInstallerPlugin(ApplicationPlugin):
         raise RuntimeError("Error while retrieving pyproject.toml data.")
 
     @property
-    def include_opt_block(self) -> List:
+    def poetry_include_opt_block(self) -> List:
         """
-        Get include config
+        Get poetry include config
         """
         data = self._app.poetry.pyproject.data
         if data:
-            return data.get("tool", {}).get("poetry", {}).get("include", [])
+            if not data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("exclude-include", False):
+                return data.get("tool", {}).get("poetry", {}).get("include", [])
+            return []
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
+    def include_opt_block(self) -> Dict:
+        """
+        Get pyinstaller include config
+        """
+        data = self._app.poetry.pyproject.data
+        if data:
+            return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("include", {})
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
+    def package_opt_block(self) -> Dict:
+        """
+        Get package config
+        """
+        data = self._app.poetry.pyproject.data
+        if data:
+            return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("package", {})
         raise RuntimeError("Error while retrieving pyproject.toml data.")
 
     @property
@@ -426,10 +473,12 @@ class PyInstallerPlugin(ApplicationPlugin):
             for t in self._targets:
                 io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}{' NOUPX' if t.noupx else ''}</debug>")
                 t.build(venv=venv, platform=platform,
-                        include_config=self.include_opt_block,
                         collect_config=self.collect_opt_block,
                         copy_metadata=self.copy_metadata_opt_block,
-                        recursive_copy_metadata=self.recursive_copy_metadata_opt_block
+                        recursive_copy_metadata=self.recursive_copy_metadata_opt_block,
+                        poetry_include_config=self.poetry_include_opt_block,
+                        include_config=self.include_opt_block,
+                        package_config=self.package_opt_block,
                         )
                 io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', platform, t.prog)}'</success>")
 
