@@ -412,24 +412,12 @@ class PyInstallerPlugin(ApplicationPlugin):
                 io.write_line("<fg=black;bg=yellow>Skipping PyInstaller build, requires virtualenv.</>")
                 return
 
-            pyinstaller_package = "pyinstaller" if self.version_opt is None else f"pyinstaller=={self.version_opt}"
-            venv_pip = venv.run_pip(
-                "install",
-                "--disable-pip-version-check",
-                "--force-reinstall",
-                "--no-input",
-                pyinstaller_package,
-            )
-            pyinstaller_version = venv.run("pyinstaller", "--version").strip()
-            io.write_line(f"<b>Preparing</b> PyInstaller <b><c1>{pyinstaller_version}</b></c1> environment <debug>{venv.path}</debug>")
+            pip_args = []
 
-            venv_pip = venv.run_pip(
-                "install",
-                "--disable-pip-version-check",
-                "--ignore-installed",
-                "--no-input",
-                "certifi", "cffi",
-            )
+            pyinstaller_package = "pyinstaller" if self.version_opt is None else f"pyinstaller=={self.version_opt}"
+            pip_args.append(pyinstaller_package)
+
+            pip_args.extend(("certifi", "cffi"))
 
             for requirement in self._app.poetry.package.requires:
                 pip_r = requirement.base_pep_508_name_resolved.replace(' (', '').replace(')', '')
@@ -443,14 +431,20 @@ class PyInstallerPlugin(ApplicationPlugin):
                                   (
                                       f" <debug>[{requirement.source_name}]</debug>" if requirement.source_name else ""))
 
-                    venv_pip = venv.run_pip(
-                        "install",
-                        "--disable-pip-version-check",
-                        "--ignore-installed",
-                        "--no-input",
-                        *extra_index_url,
-                        pip_r,
-                    )
+                pip_args.extend(extra_index_url)
+                pip_args.append(pip_r)
+
+            venv_pip = venv.run_pip(
+                "install",
+                "--disable-pip-version-check",
+                "--ignore-installed",
+                "--no-input",
+                *pip_args,
+            )
+
+            pyinstaller_version = venv.run("pyinstaller", "--version").strip()
+            io.write_line(
+                f"<b>Preparing</b> PyInstaller <b><c1>{pyinstaller_version}</b></c1> environment <debug>{venv.path}</debug>")
 
             if event.io.is_debug():
                 io.write_line(f"<debug>{venv_pip}</debug>")
