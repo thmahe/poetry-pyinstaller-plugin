@@ -293,6 +293,17 @@ class PyInstallerPlugin(ApplicationPlugin):
         raise RuntimeError("Error while retrieving pyproject.toml data.")
 
     @property
+    def use_poetry_install(self) -> bool:
+        """
+        Get status of option "use-poetry-install"
+        """
+        data = self._app.poetry.pyproject.data
+
+        if data:
+            return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("use-poetry-install", False)
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
     def include_opt_block(self) -> Dict:
         """
         Get pyinstaller include config
@@ -434,20 +445,20 @@ class PyInstallerPlugin(ApplicationPlugin):
                 pip_args.extend(extra_index_url)
                 pip_args.append(pip_r)
 
-            venv_pip = venv.run_pip(
-                "install",
-                "--disable-pip-version-check",
-                "--ignore-installed",
-                "--no-input",
-                *pip_args,
-            )
+            if not self.use_poetry_install:
+                venv_pip = venv.run_pip(
+                    "install",
+                    "--disable-pip-version-check",
+                    "--ignore-installed",
+                    "--no-input",
+                    *pip_args,
+                )
+                if event.io.is_debug():
+                    io.write_line(f"<debug>{venv_pip}</debug>")
 
             pyinstaller_version = venv.run("pyinstaller", "--version").strip()
             io.write_line(
                 f"<b>Preparing</b> PyInstaller <b><c1>{pyinstaller_version}</b></c1> environment <debug>{venv.path}</debug>")
-
-            if event.io.is_debug():
-                io.write_line(f"<debug>{venv_pip}</debug>")
 
             for cert in self.certifi_opt_block.get('append', []):
                 cert_path = (self._app.poetry.pyproject_path.parent / cert).relative_to(
