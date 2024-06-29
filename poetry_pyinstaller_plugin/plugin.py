@@ -32,7 +32,7 @@ from importlib import reload
 from pathlib import Path
 from typing import List, Dict, Optional
 from shutil import copytree, copy
-from errno import ENOTDIR, EINVAL
+from errno import ENOTDIR, EINVAL, EEXIST
 
 
 # Reload logging after PyInstaller import (conflicts with poetry logging)
