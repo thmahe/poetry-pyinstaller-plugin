@@ -34,6 +34,15 @@ Are listed in this sections all options available to configure `poetry-pyinstall
     * Pre-build hook. `path.to.my.hook:pre-build-hook`
   * `post-build` (string)
     * Post-build hook. `path.to.my.hook:post-build-hook`
+  * `use-poetry-install` (boolean) 
+    * The default mode `False` installs packages (including "*pyinstaller*", "*certifi*" & "*cffi*") to the actual
+      virtual environment by using internally pip. It will not use `poetry.lock` file, just the dependencies from the
+      `pyproject.toml` configuration file.
+    * When set to `True` the virtual environment should be completely installed by poetry including "*pyinstaller*"
+      and optional "*certifi*" & "*cffi*" (for custom certificates).\
+      This is done by adding them as dependencies to the `pyproject.toml` configuration file and run `poetry install`
+      before starting `poetry build` command. Recommendation is the usage of an separate dependency group for
+      pyinstaller.
   * `scripts` (dictionary) 
     * Where key is the program name and value a path to script or a `PyInstallerTarget` spec
     * Example: `prog-name = "my_package/script.py"`
