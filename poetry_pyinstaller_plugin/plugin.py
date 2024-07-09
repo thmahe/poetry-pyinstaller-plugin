@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 from shutil import copytree, copy
 from errno import ENOTDIR, EINVAL, EEXIST
-
+from importlib.machinery import SourceFileLoader
 
 # Reload logging after PyInstaller import (conflicts with poetry logging)
 reload(logging)
@@ -43,6 +43,7 @@ from cleo.events.console_events import COMMAND, TERMINATE
 from cleo.events.event_dispatcher import EventDispatcher
 from cleo.io.io import IO
 
+from poetry.poetry import Poetry
 from poetry.utils.env import VirtualEnv, ephemeral_environment
 from poetry.console.application import Application
 from poetry.console.commands.build import BuildCommand
@@ -66,6 +67,8 @@ class PyinstDistType(enum.Enum):
 
 
 class PyInstallerTarget(object):
+    _platform: str
+
     def __init__(self,
         prog: str,
         source: str,
@@ -99,8 +102,6 @@ class PyInstallerTarget(object):
         self.arch = arch
         self.hiddenimport = hiddenimport
         self.runtime_hooks = runtime_hooks
-
-        self._platform = None
 
     def _validate_type(self, type: str):
         if type not in PyinstDistType.list():
@@ -147,7 +148,6 @@ class PyInstallerTarget(object):
 
         args += collect_args
 
-
         if include_config or poetry_include_config:
             include_args = []
             sep = ";" if "win" in platform else ":"
@@ -164,7 +164,6 @@ class PyInstallerTarget(object):
                     include_args.append(f"{Path(path).resolve()}{sep}.")
 
             args += include_args
-
 
         if self.strip:
             args.append("--strip")
@@ -211,13 +210,11 @@ class PyInstallerTarget(object):
                 destination = Path(package_path / (target if target != "." else source))
                 try:
                     copytree(source, destination)
-                except OSError as exc: # python >2.5 or is file
+                except OSError as exc: # python >2.5 or, is file and/or file exists
                     if exc.errno in (ENOTDIR, EINVAL, EEXIST):
                         copy(source, destination)
                     else:
                         raise
-
-
 
     def bundle_wheel(self, io):
         wheels = glob.glob("*-py3-none-any.whl", root_dir="dist")
@@ -229,6 +226,44 @@ class PyInstallerTarget(object):
 
                 add_folder_to_wheel_data_script(folder_to_add, Path("dist", wheel))
 
+class PyInstallerPluginHook(object):
+    """
+    Generic interface for interacting with Poetry in hooks
+    """
+
+    def __init__(
+        self, io: IO, venv: VirtualEnv, poetry: Poetry, platform: str
+    ) -> None:
+        self._io = io
+        self._venv = venv
+        self.poetry = poetry
+        self.platform = platform
+
+    @property
+    def pyproject_data(self) -> Dict:
+        """
+        Get pyproject data
+        :return: Configuration file dictionary
+        """
+        return self.poetry.pyproject.data
+
+    def run(self, command: str, *args: str) -> None:
+        """
+        Run command in virtual environment
+        """
+        self._venv.run(command, *args)
+
+    def run_pip(self, *args: str) -> None:
+        """
+        Install requirements in virtual environment
+        """
+        return self._venv.run_pip(*args)
+
+    def write_line(self, output: str) -> None:
+        """
+        Output message
+        """
+        self._io.write_line(output)
 
 class PyInstallerPlugin(ApplicationPlugin):
     _app: Application = None
@@ -344,6 +379,26 @@ class PyInstallerPlugin(ApplicationPlugin):
         raise RuntimeError("Error while retrieving pyproject.toml data.")
 
     @property
+    def pre_build_opt_block(self) -> str:
+        """
+        Get pre-build hook config
+        """
+        data = self._app.poetry.pyproject.data
+        if data:
+            return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("pre-build", None)
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
+    def post_build_opt_block(self) -> str:
+        """
+        Get post-build hook config
+        """
+        data = self._app.poetry.pyproject.data
+        if data:
+            return data.get("tool", {}).get("poetry-pyinstaller-plugin", {}).get("post-build", None)
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
     def _use_bundle(self):
         return True in [t.bundled for t in self._targets]
 
@@ -388,6 +443,12 @@ class PyInstallerPlugin(ApplicationPlugin):
                 new = wheel.replace("-any.whl", f"-{platform}.whl")
                 os.replace(Path("dist", wheel), Path("dist", new))
                 io.write_line(f"  - {new}")
+
+    def _load_hook_module(self, module_path: str):
+        _module = module_path.split(".")[-1]
+        full_module_path = (self._app.poetry.pyproject_path.parent / Path(*module_path.split(".")[:-1]) / f"{_module}.py")
+        return SourceFileLoader(_module, str(full_module_path)).load_module()
+
 
     def _build_binaries(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
         """
@@ -473,6 +534,18 @@ class PyInstallerPlugin(ApplicationPlugin):
                         cert.write(include.read())
                 """))
 
+            if self.pre_build_opt_block:
+                _module_path, _callable = self.pre_build_opt_block.split(":")
+                module = self._load_hook_module(_module_path)
+                if hasattr(module, _callable):
+                    io.write_line(
+                        f"<b>Running</b> pre-build hook <debug>{module.__name__}.{_callable}()</debug>")
+                    getattr(module, _callable)(
+                        PyInstallerPluginHook(io, venv, self._app.poetry, platform)
+                    )
+                else:
+                    io.write_line(f"<fg=black;bg=yellow>Skipping pre-build hook, method {_callable} not found in {module.__name__}.</>")
+
             io.write_line(
                 f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
             for t in self._targets:
@@ -486,6 +559,18 @@ class PyInstallerPlugin(ApplicationPlugin):
                         package_config=self.package_opt_block,
                         )
                 io.write_line(f"  - Built <success>{t.prog}</success> -> <success>'{Path('dist', 'pyinstaller', platform, t.prog)}'</success>")
+
+            if self.post_build_opt_block:
+                _module_path, _callable = self.post_build_opt_block.split(":")
+                module = self._load_hook_module(_module_path)
+                if hasattr(module, _callable):
+                    io.write_line(
+                        f"<b>Running</b> post-build hook <debug>{module.__name__}.{_callable}()</debug>")
+                    getattr(module, _callable)(
+                        PyInstallerPluginHook(io, venv, self._app.poetry, platform)
+                    )
+                else:
+                    io.write_line(f"<fg=black;bg=yellow>Skipping post-build hook, method {_callable} not found in {module.__name__}.</>")
 
             if fmt == "pyinstaller":
                 sys.exit(0)

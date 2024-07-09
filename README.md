@@ -30,6 +30,10 @@ Are listed in this sections all options available to configure `poetry-pyinstall
     * Does not support version constraint
   * `exclude-include` (boolean) 
     * Exclude poetry include. Default: `False`
+  * `pre-build` (string)
+    * Pre-build hook. `path.to.my.hook:pre-build-hook`
+  * `post-build` (string)
+    * Post-build hook. `path.to.my.hook:post-build-hook`
   * `use-poetry-install` (boolean) 
     * The default mode `False` installs packages (including "*pyinstaller*", "*certifi*" & "*cffi*") to the actual
       virtual environment by using internally pip. It will not use `poetry.lock` file, just the dependencies from the
@@ -38,7 +42,7 @@ Are listed in this sections all options available to configure `poetry-pyinstall
       and optional "*certifi*" & "*cffi*" (for custom certificates).\
       This is done by adding them as dependencies to the `pyproject.toml` configuration file and run `poetry install`
       before starting `poetry build` command. Recommendation is the usage of an separate dependency group for
-      pyinstaller. 
+      pyinstaller.
   * `scripts` (dictionary) 
     * Where key is the program name and value a path to script or a `PyInstallerTarget` spec
     * Example: `prog-name = "my_package/script.py"`
@@ -268,3 +272,127 @@ Expected directory structure:
     ├── __init__.py
     └── main.py
 ```
+
+## Hooks
+
+The `pre-build` and `post-build` settings allow you to call a python function before and after the pyinstaller build. Each hook is passed a [hook interface](#hook_interface) class that allows access to Poetry, io and the virtual environment.
+
+This lets you have further control in niche situations.
+
+### Example
+```toml
+[tool.poetry]
+name = "my_project"
+
+[tool.poetry-pyinstaller-plugin]
+# ran after requirements install and before builds
+pre-build = "hooks.pyinstaller:post_build"
+
+# ran after all builds are done
+post-build = "hooks.pyinstaller:post_build"
+
+[tool.poetry-pyinstaller-plugin.scripts]
+hello-world = "my_package/main.py"
+
+[tool.poetry-pyinstaller-plugin.package]
+# package output from mkdocs
+"site" = "docs"
+```
+
+<a name="hooks_pyinstaller"></a> **hooks/pyinstaller.py**:
+```python
+import shutil
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+def pre_build(interface) -> None:
+    """
+    Pyinstaller pre build hook. Build local documentation.
+    """
+    interface.write_line("  - <b>Building local docs</b>")
+
+    test_group = interface.poetry.package._dependency_groups["docs"]  # noqa: SLF001
+    for req in test_group.dependencies:
+        pip_r = req.base_pep_508_name_resolved.replace(" (", "").replace(
+            ")", ""
+        )
+        interface.write_line(f"    - Installing <c1>{req}</c1>")
+        interface.run_pip(
+            "install",
+            "--disable-pip-version-check",
+            "--ignore-installed",
+            "--no-input",
+            pip_r,
+        )
+
+    interface.run("poetry", "run", "mkdocs", "build", "--no-directory-urls")
+    interface.write_line("    - <fg=green>Docs built</>")
+
+def post_build(interface) -> None:
+    """
+    Pyinstaller post build hook. Version built directory, remove generated folders.
+    """
+    dist_path = Path("dist", "pyinstaller", interface.platform)
+    version = interface.pyproject_data["tool"]["poetry"]["version"]
+
+    interface.write_line("  - <b>Visioning built</b>")
+    for script in interface.pyproject_data["tool"]["poetry-pyinstaller-plugin"]["scripts"]:
+        source = Path(dist_path, script)
+        destination = Path(dist_path, f"{script}_{version}")
+
+        if destination.exists():
+            shutil.rmtree(destination)  # remove existing
+
+        shutil.move(f"{source}", f"{destination}")
+        interface.write_line(
+            f"    - Updated "
+            f"<success>{script}</success> -> "
+            f"<success>{script}_{version}</success>"
+        )
+
+    interface.write_line("  - <b>Cleaning</b>")
+    shutil.rmtree(Path("build"))
+    interface.write_line("    - Removed build directory")
+    shutil.rmtree(Path("site"))
+    interface.write_line("    - Removed site directory")
+```
+
+<details>
+
+<summary><a name="hook_interface"></a>Hook Interface</summary>
+
+Here are the attributes and functions for the hook interface class, see example [hook file](#hooks_pyinstaller) for basic usage.
+
+> Note: If using linter(s), placing this class in a `TYPE_CHECKING` block will remove *most* errors.
+
+```python
+from typing import Dict, List, Any
+
+class PyIntallerHookInterface:
+    """
+    Pyinstaller hook interface
+
+    Attributes:
+        _io (IO): cleo.io.io IO instance
+        _venv (VirtualEnv): poetry.utils.env VirtualEnv instance
+        poetry (Poetry): poetry.poetry Poetry instance
+        pyproject_data (dict): pyproject.TOML contents
+        platform (str): platform string
+    """
+
+    poetry: Any
+    pyproject_data: Dict
+    platform: str
+
+    def run(self, command: str, *args: str) -> None:
+        """Run command in virtual environment"""
+
+    def run_pip(self, *args: str) -> None:
+        """Install requirements in virtual environment"""
+
+    def write_line(self, output: str) -> None:
+        """Output message with Poetry IO"""
+```
+
+</details>
+
