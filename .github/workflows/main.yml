@@ -39,7 +39,7 @@ jobs:
 
   Release:
     runs-on: [ ubuntu-latest ]
-    if: startsWith(github.event.ref, 'refs/tags/v')
+    if: github.ref == 'refs/heads/master'
     needs: Tests
     steps:
       - uses: actions/checkout@v4
@@ -53,5 +53,6 @@ jobs:
           python -m pip install poetry
       - name: Publish package
         run: |
+          poetry self add "poetry-dynamic-versioning[plugin]"
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
           poetry publish --build

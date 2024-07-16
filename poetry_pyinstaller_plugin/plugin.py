@@ -112,6 +112,7 @@ class PyInstallerTarget(object):
         return PyinstDistType(type)
 
     def build(self,
+              io,
               venv: VirtualEnv,
               platform: str,
               collect_config: Dict,
@@ -202,7 +203,17 @@ class PyInstallerTarget(object):
             args.append("--recursive-copy-metadata")
             args.append(package)
 
-        venv.run(str(Path(venv.script_dirs[0]) / "pyinstaller"), *args)
+        if logging.root.level == logging.WARNING:
+            args.append(f"--log-level=WARN")
+        if logging.root.level == logging.INFO:
+            args.append(f"--log-level=INFO")
+        if logging.root.level == logging.DEBUG:
+            args.append("--debug=all")
+            args.append(f"--log-level=DEBUG")
+
+        pyinst_build = venv.run(str(Path(venv.script_dirs[0]) / "pyinstaller"), *args)
+        output = textwrap.indent(pyinst_build, " " * 6)
+        io.write(f"<debug>{output}</debug>")
 
         if package_config:
             package_path = Path("dist", "pyinstaller", platform, self.prog)
@@ -550,7 +561,7 @@ class PyInstallerPlugin(ApplicationPlugin):
                 f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
             for t in self._targets:
                 io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}{' NOUPX' if t.noupx else ''}</debug>")
-                t.build(venv=venv, platform=platform,
+                t.build(io=io, venv=venv, platform=platform,
                         collect_config=self.collect_opt_block,
                         copy_metadata=self.copy_metadata_opt_block,
                         recursive_copy_metadata=self.recursive_copy_metadata_opt_block,

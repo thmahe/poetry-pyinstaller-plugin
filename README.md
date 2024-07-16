@@ -143,6 +143,32 @@ Replacing platform in wheels (manylinux_2_35_x86_64)
   - my_package-0.0.0-py3-none-manylinux_2_35_x86_64.whl
 ```
 
+### Build verbosity settings
+
+Logging verbosity during PyInstaller build phase is configured through `poetry build` command using `--verbose/-v` option.
+
+Available levels:
+* `-v` : Set `--log-level=WARN`
+* `-vv` : Set `--log-level=INFO`
+* `-vvv` : Set `--log-level=DEBUG` & `--debug=all`
+#### Example:
+```text
+$ poetry build --format pyinstaller -v
+Using virtualenv: /home/.../.cache/pypoetry/virtualenvs/one-file-rP3OcWW--py3.10
+  - Installing requests (>=2.32.3,<3.0.0)
+Preparing PyInstaller 6.4.0 environment /home/.../.cache/pypoetry/virtualenvs/one-file-rP3OcWW--py3.10
+Building binaries with PyInstaller Python 3.10 [manylinux_2_35_x86_64]
+  - Building one-file SINGLE_FILE
+      59 INFO: PyInstaller: 6.4.0, contrib hooks: 2024.7
+      59 INFO: Python: 3.10.12
+      60 INFO: Platform: Linux-6.5.0-41-generic-x86_64-with-glibc2.35
+      60 INFO: wrote dist/pyinstaller/manylinux_2_35_x86_64/.specs/one-file.spec
+      ...
+      4009 INFO: Appending PKG archive to custom ELF section in EXE
+      4020 INFO: Building EXE from EXE-00.toc completed successfully.
+  - Built one-file -> 'dist/pyinstaller/manylinux_2_35_x86_64/one-file'
+```
+
 Expected directory structure:
 ```text
 .
