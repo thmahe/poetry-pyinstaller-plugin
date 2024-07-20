@@ -5,4 +5,5 @@ for d in */ ; do
     cd $d
     poetry build --format pyinstaller
     ./run.sh
+    cd -
 done
