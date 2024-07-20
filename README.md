@@ -73,7 +73,7 @@ Are listed in this sections all options available to configure `poetry-pyinstall
 * `uac_uiaccess` (boolean, **default** `false`) : Using this option allows an elevated application to work with Remote Desktop.
 * `argv_emulation` (boolean, **default** `false`) : Enable argv emulation for macOS app bundles. If enabled, the initial open document/URL event is processed by the bootloader and the passed file paths or URLs are appended to sys.argv.
 * `arch` (string, **default** `null`) : Target architecture (macOS only; valid values: x86_64, arm64, universal2).
-* `hiddenimport` (string, **default** `null`) : Hidden imports needed by the program (eg PIL._tkinter_finder for customtkinter).
+* `hiddenimport` (string | list), **default** `null`) : Hidden imports needed by the program (eg PIL._tkinter_finder for customtkinter).
 * `runtime_hooks` (List[str], **default** `null`): One or more runtime hook paths to bundle with the executable. These hooks are executed before any other code or module to set up special features of the runtime environment.
 
 ### Examples

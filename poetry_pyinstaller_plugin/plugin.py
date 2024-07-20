@@ -30,7 +30,7 @@ import sys
 import textwrap
 from importlib import reload
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 from shutil import copytree, copy
 from errno import ENOTDIR, EINVAL, EEXIST
 from importlib.machinery import SourceFileLoader
@@ -83,7 +83,7 @@ class PyInstallerTarget(object):
         uac_uiaccess: bool = False,
         argv_emulation: bool = False,
         arch: Optional[str] = None,
-        hiddenimport: Optional[str] = None,
+        hiddenimport: Optional[Union[str, List[str]]] = None,
         runtime_hooks: Optional[List[str]] = None,
     ):
         self.prog = prog
@@ -187,8 +187,11 @@ class PyInstallerTarget(object):
             args.append("--target-arch")
             args.append(self.arch)
         if self.hiddenimport:
-            args.append("--hidden-import")
-            args.append(self.hiddenimport)
+            if isinstance(self.hiddenimport, str):
+                self.hiddenimport = [self.hiddenimport]
+            for h in self.hiddenimport:
+                args.append("--hidden-import")
+                args.append(h)
 
         if self.runtime_hooks:
             for hook in self.runtime_hooks:

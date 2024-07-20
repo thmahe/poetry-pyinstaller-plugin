@@ -10,7 +10,7 @@ python = "^3.10"
 requests = "^2.32.3"
 
 [tool.poetry-pyinstaller-plugin.scripts]
-one-file = { source = "main.py", type = "onefile"}
+one-file = { source = "main.py", type = "onefile", hiddenimport = ["rich", "requests"]}
 
 [tool.poetry-pyinstaller-plugin]
 version = "6.4.0"
