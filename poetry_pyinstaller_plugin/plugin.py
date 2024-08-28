@@ -23,7 +23,6 @@
 __author__ = "Thomas Mahé <contact@tmahe.dev>"
 
 import enum
-import glob
 import logging
 import os
 import sys
@@ -52,6 +51,13 @@ from poetry.plugins.application_plugin import ApplicationPlugin
 
 from poetry_pyinstaller_plugin import add_folder_to_wheel_data_script
 
+def _glob(root_dir: str, end_with: str):
+    file_list = []
+    for root, directories, files in os.walk(root_dir):
+        for file in files:
+            if file.endswith(end_with):
+                file_list.append(file)
+    return file_list
 
 class PyinstDistType(enum.Enum):
     DIRECTORY = "onedir"
@@ -450,7 +456,7 @@ class PyInstallerPlugin(ApplicationPlugin):
 
         platform = WheelBuilder(self._app.poetry)._get_sys_tags()[0].split("-")[-1]
 
-        wheels = glob.glob("*-py3-none-any.whl", root_dir="dist")
+        wheels = _glob(root_dir="dist", end_with="*-py3-none-any.whl")
         if len(wheels) > 0:
             io.write_line(f"Replacing <info>platform</info> in wheels <b>({platform})</b>")
             for wheel in wheels:
@@ -510,7 +516,7 @@ class PyInstallerPlugin(ApplicationPlugin):
 
                 extra_index_url = []
                 if requirement.source_name:
-                    extra_index_url = ["--extra-index-url", extra_indexes.get(requirement.source_name)]
+                    extra_index_url = ["--extra-index-url", extra_indexes[requirement.source_name]]
 
                 if requirement.marker.validate({"sys_platform": sys.platform}):
                     io.write_line(f"  - Installing <c1>{requirement}</c1>" +
