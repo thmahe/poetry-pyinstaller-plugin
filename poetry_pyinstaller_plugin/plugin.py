@@ -116,6 +116,7 @@ class PyInstallerTarget(object):
         arch: Optional[str] = None,
         hiddenimport: Optional[Union[str, List[str]]] = None,
         runtime_hooks: Optional[List[str]] = None,
+        when: Optional[str] = None,
         add_version: bool = False,
     ):
         self.prog = prog
@@ -135,7 +136,11 @@ class PyInstallerTarget(object):
         self.arch = arch
         self.hiddenimport = hiddenimport
         self.runtime_hooks = runtime_hooks
+        self.when = when
         self.add_version = add_version
+
+        self._validate_when()
+
 
     def _validate_type(self, type: str):
         if type not in PyinstDistType.list():
@@ -144,6 +149,13 @@ class PyInstallerTarget(object):
                 f"'{type}' not in {PyinstDistType.list()}."
             )
         return PyinstDistType(type)
+
+    def _validate_when(self):
+        if self.when not in [None, "release", "prerelease"]:
+            raise ValueError(
+                f"ValueError: Unsupported value for field 'when' for target '{self.prog}', "
+                f"'{self.when}' not in ['release', 'prerelease']."
+            )
 
     def build(self,
               io,
@@ -607,6 +619,12 @@ class PyInstallerPlugin(ApplicationPlugin):
             io.write_line(
                 f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
             for t in self._targets:
+                if t.package_version is not None or t.when is None:
+                    if t.package_version.is_prerelease() and t.when != "prerelease":
+                        continue
+                    if not t.package_version.is_prerelease() and t.when == "prerelease":
+                        continue
+
                 io.write_line(f"  - Building <info>{t.prog}</info> <debug>{t.type.name}{' BUNDLED' if t.bundled else ''}{' NOUPX' if t.noupx else ''}</debug>")
                 t.build(io=io, venv=venv, platform=platform,
                         collect_config=self.collect_opt_block,
