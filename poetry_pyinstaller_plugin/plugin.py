@@ -25,6 +25,7 @@ __author__ = "Thomas Mahé <contact@tmahe.dev>"
 import enum
 import logging
 import os
+import re
 import sys
 import textwrap
 from importlib import reload
@@ -58,6 +59,29 @@ def _glob(root_dir: str, end_with: str):
             if file.endswith(end_with):
                 file_list.append(file)
     return file_list
+
+class PEP440Version:
+    """
+    Utility class to parse package version according to PEP440 spec
+    """
+
+    @classmethod
+    def _parse_version(cls, version_string: str) -> Union[re.Match[str], None]:
+        matcher = re.compile(
+            pattern=r'^([1-9][0-9]*!)?(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))'
+                    r'*((a|b|rc)(0|[1-9][0-9]*))?(\.post(0|[1-9][0-9]*))?(\.dev(0|[1-9][0-9]*))?$'
+        )
+        return matcher.match(version_string)
+
+    def __init__(self, version_string: str):
+        self.version_string = version_string
+        self.match = PEP440Version._parse_version(version_string)
+
+    def is_prerelease(self) -> bool:
+        if self.match:
+            return self.match.groups()[4] is not None
+        return False
+
 
 class PyinstDistType(enum.Enum):
     DIRECTORY = "onedir"
