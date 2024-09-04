@@ -102,6 +102,7 @@ class PyInstallerTarget(object):
     def __init__(self,
         prog: str,
         source: str,
+        package_version: PEP440Version,
         type: str = "onedir",
         bundle: bool = False,
         strip: bool = False,
@@ -115,10 +116,12 @@ class PyInstallerTarget(object):
         arch: Optional[str] = None,
         hiddenimport: Optional[Union[str, List[str]]] = None,
         runtime_hooks: Optional[List[str]] = None,
+        add_version: bool = False,
     ):
         self.prog = prog
         self.source = Path(source).resolve()
         self.type = self._validate_type(type)
+        self.package_version = package_version
 
         self.bundled = bundle
         self.strip = strip
@@ -132,6 +135,7 @@ class PyInstallerTarget(object):
         self.arch = arch
         self.hiddenimport = hiddenimport
         self.runtime_hooks = runtime_hooks
+        self.add_version = add_version
 
     def _validate_type(self, type: str):
         if type not in PyinstDistType.list():
@@ -155,6 +159,9 @@ class PyInstallerTarget(object):
         self._platform = platform
         work_path = Path("build", platform)
         dist_path = Path("dist", "pyinstaller", platform)
+
+        if self.add_version:
+            self.prog = f"{self.prog}-{self.package_version.version_string}"
 
         args = [
             str(self.source),
@@ -318,6 +325,13 @@ class PyInstallerPlugin(ApplicationPlugin):
         self._targets = []
 
     @property
+    def package_version(self) -> PEP440Version:
+        data = self._app.poetry.pyproject.data
+        if data:
+            return PEP440Version(data.get("tool", {}).get("poetry", {}).get("version", None))
+        raise RuntimeError("Error while retrieving pyproject.toml data.")
+
+    @property
     def version_opt(self) -> Dict:
         """
         Get pyinstaller version option
@@ -464,9 +478,9 @@ class PyInstallerPlugin(ApplicationPlugin):
         for prog_name, content in self.scripts_opt_block.items():
             # Simplest binding: prog_name = "package.source"
             if isinstance(content, str):
-                targets.append(PyInstallerTarget(prog=prog_name, source=content))
+                targets.append(PyInstallerTarget(prog=prog_name, source=content, package_version=self.package_version))
             elif isinstance(content, dict):
-                targets.append(PyInstallerTarget(prog=prog_name, **content))
+                targets.append(PyInstallerTarget(prog=prog_name, package_version=self.package_version, **content))
         return targets
 
     def _update_wheel_platform_tag(self, io: IO) -> None:

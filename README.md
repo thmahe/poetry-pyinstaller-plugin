@@ -75,6 +75,7 @@ Are listed in this sections all options available to configure `poetry-pyinstall
 * `arch` (string, **default** `null`) : Target architecture (macOS only; valid values: x86_64, arm64, universal2).
 * `hiddenimport` (string | list), **default** `null`) : Hidden imports needed by the program (eg PIL._tkinter_finder for customtkinter).
 * `runtime_hooks` (List[str], **default** `null`): One or more runtime hook paths to bundle with the executable. These hooks are executed before any other code or module to set up special features of the runtime environment.
+* `add_version` (bool, **default** `False`): Add `tool.poetry.version` to built executable (suffix)
 
 ### Examples
 
@@ -104,6 +105,9 @@ hello-world = { source = "my_package/main.py", type = "onedir", bundle = false }
 
 # Single file bundled in wheel
 single-file-bundled = { source = "my_package/main.py", type = "onefile", bundle = true}
+
+# Single file with package version in final executable name
+hello-world = { source = "my_package/main.py", type = "onedir", add_version = true } # -> hello-world-X.X.X
 
 # Folder bundled in wheel
 folder-bundled = { source = "my_package/main.py", type = "onedir", bundle = true}
