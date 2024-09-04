@@ -237,7 +237,7 @@ class PyInstallerTarget(object):
                         raise
 
     def bundle_wheel(self, io):
-        wheels = _glob("*-py3-none-any.whl", root_dir="dist")
+        wheels = _glob(root_dir="dist", end_with="*-py3-none-any.whl")
         for wheel in wheels:
             if self._platform and self.prog:
                 folder_to_add = Path("dist", "pyinstaller", self._platform, self.prog)
