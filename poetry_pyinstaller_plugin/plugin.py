@@ -186,7 +186,6 @@ class PyInstallerTarget(object):
             "--workpath", str(work_path),
             "--distpath", str(dist_path),
             "--specpath", str(dist_path / ".specs"),
-            "--paths", str(venv.site_packages.path),
             "--log-level=WARN",
             "--contents-directory", f"_{self.prog}_internal"
         ]
