@@ -5,12 +5,12 @@ name: PyPi Release
 
 on:
   push:
-    tags: [ "*" ]
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   Release:
     runs-on: [ ubuntu-latest ]
-    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
         with:
