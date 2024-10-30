@@ -14,7 +14,7 @@ one-file = { source = "main.py", type = "onefile", hiddenimport = ["rich", "requ
 one-file-internal = { source = "main.py", type = "onefile", hiddenimport = ["rich", "requests"], when="prerelease" }
 
 [tool.poetry-pyinstaller-plugin]
-version = "6.4.0"
+version = "6.11.0"
 disable-upx = true
 
 [build-system]
