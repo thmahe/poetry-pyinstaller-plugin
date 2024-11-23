@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "directory-package"
+version = "1.0.4"
+description = ""
+authors = ["Thomas Mahé <contact@tmahe.dev>", "Neal Joslin <neal@joslin.io>"]
+readme = "README.md"
+packages = [
+    { include="my_package" },
+    { include="my_package_b" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.32.3"
+
+[tool.poetry-pyinstaller-plugin.scripts]
+hook = { source = "my_package/main.py", type = "onedir"}
+
+[tool.poetry-pyinstaller-plugin]
+version = "6.11.0"
+disable-upx = true
+pre-build = "hooks:pre_build"
+post-build = "hooks:post_build"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
