@@ -33,7 +33,7 @@ import textwrap
 from importlib import reload
 from pathlib import Path
 from typing import List, Dict, Optional, Union
-from shutil import copytree, copy
+from shutil import copytree, copy, rmtree
 from errno import ENOTDIR, EINVAL, EEXIST
 from importlib.machinery import SourceFileLoader
 
@@ -269,10 +269,16 @@ class PyInstallerTarget(object):
         io.write(f"<debug>{output}</debug>")
 
         if package_config:
-            package_path = Path("dist", "pyinstaller", platform, self.prog)
+            package_path = (
+                Path("dist", "pyinstaller", platform, self.prog)
+                if self.type is not PyinstDistType.SINGLE_FILE
+                else Path("dist", "pyinstaller", platform)
+            )
             for source, target in package_config.items():
                 destination = Path(package_path / (target if target != "." else source))
                 try:
+                    if destination.exists() and destination.is_dir():
+                        rmtree(destination)
                     copytree(source, destination)
                 except OSError as exc: # python >2.5 or, is file and/or file exists
                     if exc.errno in (ENOTDIR, EINVAL, EEXIST):

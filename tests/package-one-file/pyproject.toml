@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "directory-package"
+version = "1.0.4"
+description = ""
+authors = ["Thomas Mahé <contact@tmahe.dev>", "Neal Joslin <neal@joslin.io>"]
+readme = "README.md"
+packages = [
+    { include="my_package" },
+]
+include = [
+    { path = "README.md", format = ["sdist"] },
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.32.3"
+
+[tool.poetry-pyinstaller-plugin.scripts]
+package-one-file = { source = "my_package/main.py", type = "onefile"}
+
+[tool.poetry-pyinstaller-plugin]
+version = "6.11.0"
+disable-upx = true
+exclude-include = true
+
+[tool.poetry-pyinstaller-plugin.package]
+"LICENSE" = "."
+"additional_files/README.md" = "USER_README.md"
+"docs" = "."
+
+[tool.poetry-pyinstaller-plugin.include]
+"additional_files/icons/*" = "."
+"additional_files/images/*" = "element_images"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
