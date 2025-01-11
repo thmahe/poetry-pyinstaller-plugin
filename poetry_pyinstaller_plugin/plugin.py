@@ -345,9 +345,9 @@ class PyInstallerPlugin(ApplicationPlugin):
 
     @property
     def package_version(self) -> PEP440Version:
-        data = self._app.poetry.pyproject.data
-        if data:
-            return PEP440Version(data.get("tool", {}).get("poetry", {}).get("version", None))
+        if data := self._app.poetry.pyproject.data:
+            if version := data.get("project", {}).get("version") or data.get("tool", {}).get("poetry", {}).get("version"):
+                return PEP440Version(version)
         raise RuntimeError("Error while retrieving pyproject.toml data.")
 
     @property
