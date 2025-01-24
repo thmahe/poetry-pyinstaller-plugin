@@ -220,10 +220,10 @@ class PyInstallerTarget(object):
             args.append("--strip")
         if self.noupx:
             args.append("--noupx")
-        if self.console:
-            args.append("--console")
-        if self.windowed:
-            args.append("--windowed")
+
+        args.append("--console" if self.console else "--noconsole")
+        args.append("--windowed" if self.windowed else '--nowindowed')
+        
         if self.icon:
             args.append("--icon")
             args.append(self.icon)
