@@ -1,7 +1,7 @@
 <p align="center">
-![GitHub branch check runs](https://img.shields.io/github/check-runs/thmahe/poetry-pyinstaller-plugin/master)
-![PyPI - Version](https://img.shields.io/pypi/v/poetry-pyinstaller-plugin)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/poetry-pyinstaller-plugin)
+<img src="https://img.shields.io/github/check-runs/thmahe/poetry-pyinstaller-plugin/master" alt="GitHub branch check runs"/>
+<img src="https://img.shields.io/pypi/v/poetry-pyinstaller-plugin" alt="PyPI - Version"/>
+<img src="https://img.shields.io/pypi/dm/poetry-pyinstaller-plugin" alt="PyPI - Downloads"/>
 </p>
 
 # PyInstaller plugin for Poetry
