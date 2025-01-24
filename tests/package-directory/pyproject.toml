@@ -12,7 +12,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 requests = "^2.32.3"
 
 [tool.poetry-pyinstaller-plugin.scripts]
