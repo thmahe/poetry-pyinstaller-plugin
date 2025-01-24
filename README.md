@@ -1,3 +1,9 @@
+<p align="center">
+![GitHub branch check runs](https://img.shields.io/github/check-runs/thmahe/poetry-pyinstaller-plugin/master)
+![PyPI - Version](https://img.shields.io/pypi/v/poetry-pyinstaller-plugin)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/poetry-pyinstaller-plugin)
+</p>
+
 # PyInstaller plugin for Poetry
 
 Easily create executable binaries from your `pyproject.toml` using [PyInstaller](https://pyinstaller.org).
