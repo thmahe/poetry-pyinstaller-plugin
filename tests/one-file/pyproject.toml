@@ -6,11 +6,11 @@ authors = ["Thomas Mahé <contact@tmahe.dev>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 requests = "^2.32.3"
 
 [tool.poetry-pyinstaller-plugin.scripts]
-one-file = { source = "main.py", type = "onefile", hiddenimport = ["rich", "requests"]}
+one-file = { source = "main.py", type = "onefile", hiddenimport = ["rich", "requests"], console=false}
 one-file-with-version = { source = "main.py", type = "onefile", hiddenimport = ["rich", "requests"], add_version=true }
 
 [tool.poetry-pyinstaller-plugin]
