@@ -581,23 +581,36 @@ class PyInstallerPlugin(ApplicationPlugin):
                     io.write_line(f"<debug>{venv_pip}</debug>")
 
             pyinstaller_version = venv.run("pyinstaller", "--version").strip()
+
             io.write_line(
                 f"<b>Preparing</b> PyInstaller <b><c1>{pyinstaller_version}</b></c1> environment <debug>{venv.path}</debug>")
 
+            pip_args = []
+            extra_index_url = []
             for requirement in self._app.poetry.package.requires:
                 pip_r = requirement.base_pep_508_name_resolved.replace(' (', '').replace(')', '')
-
-                extra_index_url = []
-                if requirement.source_name:
-                    extra_index_url = ["--extra-index-url", extra_indexes[requirement.source_name]]
-                    pip_args.extend(extra_index_url)
 
                 if validate_dependency(requirement):
                     io.write_line(f"  - Installing <c1>{requirement}</c1>" +
                                   (f" <debug>[{requirement.source_name}]</debug>" if requirement.source_name else ""))
                     pip_args.append(pip_r)
+                    if requirement.source_name:
+                        extra_index_url = ["--extra-index-url", extra_indexes[requirement.source_name]]
                 else:
                     io.write_line(f"  - <debug>Skipping</debug> <c1>{requirement}</c1>")
+
+            pip_args.extend(extra_index_url)
+
+            if not self.use_poetry_install:
+                venv_pip = venv.run_pip(
+                    "install",
+                    "--disable-pip-version-check",
+                    "--ignore-installed",
+                    "--no-input",
+                    *pip_args,
+                )
+                if event.io.is_debug():
+                    io.write_line(f"<debug>{venv_pip}</debug>")
 
             for cert in self.certifi_opt_block.get('append', []):
                 cert_path = (self._app.poetry.pyproject_path.parent / cert).relative_to(
