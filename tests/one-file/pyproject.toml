@@ -7,7 +7,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-requests = "^2.32.3"
+requests = {version = "^2.32.3", markers = 'sys_platform != "win32"'}
+requests-cache = {version = "^2.30.0", markers = 'platform_machine == "aarch64"'}
 
 [tool.poetry-pyinstaller-plugin.scripts]
 one-file = { source = "main.py", type = "onefile", hiddenimport = ["rich", "requests"], console=false}
