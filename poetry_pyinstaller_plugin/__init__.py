@@ -23,8 +23,12 @@
 __author__ = "Thomas Mahé <contact@tmahe.dev>"
 
 import os
+import platform
+import sys
 import zipfile
 from pathlib import Path
+
+from poetry.core.packages.dependency import Dependency
 
 
 def add_folder_to_wheel_data_script(folder_path: Path, wheel_path: Path) -> None:
@@ -44,3 +48,24 @@ def add_folder_to_wheel_data_script(folder_path: Path, wheel_path: Path) -> None
                 file_path = os.path.join(root, file)
                 arcname = data_script / os.path.relpath(file_path, folder_path)
                 wheelf.write(file_path, arcname=arcname)
+
+def validate_dependency(requirement: Dependency):
+    return requirement.marker.validate({
+        "sys_platform": sys.platform,
+        "platform_machine": platform.machine(),
+        "platform_python_implementation": platform.python_implementation(),
+        "platform_release": platform.release(),
+        "platform_system": platform.system(),
+        "platform_version": platform.version(),
+        "python_version": '.'.join(platform.python_version_tuple()[:2]),
+        "python_full_version":    platform.python_version(),
+        "implementation_name":    sys.implementation.name,
+        "implementation_version": format_full_version(sys.implementation.version) if hasattr(sys, 'implementation') else "0",
+    })
+
+def format_full_version(info):
+    version = '{0.major}.{0.minor}.{0.micro}'.format(info)
+    kind = info.releaselevel
+    if kind != 'final':
+        version += kind[0] + str(info.serial)
+    return version
