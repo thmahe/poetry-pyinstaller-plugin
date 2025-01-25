@@ -52,7 +52,8 @@ from poetry.console.commands.build import BuildCommand
 from poetry.core.masonry.builders.wheel import WheelBuilder
 from poetry.plugins.application_plugin import ApplicationPlugin
 
-from poetry_pyinstaller_plugin import add_folder_to_wheel_data_script
+from poetry_pyinstaller_plugin import add_folder_to_wheel_data_script, validate_dependency
+
 
 def _glob(root_dir: str, end_with: str):
     file_list = []
@@ -568,21 +569,6 @@ class PyInstallerPlugin(ApplicationPlugin):
 
             pip_args.extend(("certifi", "cffi"))
 
-            for requirement in self._app.poetry.package.requires:
-                pip_r = requirement.base_pep_508_name_resolved.replace(' (', '').replace(')', '')
-
-                extra_index_url = []
-                if requirement.source_name:
-                    extra_index_url = ["--extra-index-url", extra_indexes[requirement.source_name]]
-
-                if requirement.marker.validate({"sys_platform": sys.platform}):
-                    io.write_line(f"  - Installing <c1>{requirement}</c1>" +
-                                  (
-                                      f" <debug>[{requirement.source_name}]</debug>" if requirement.source_name else ""))
-
-                pip_args.extend(extra_index_url)
-                pip_args.append(pip_r)
-
             if not self.use_poetry_install:
                 venv_pip = venv.run_pip(
                     "install",
@@ -597,6 +583,21 @@ class PyInstallerPlugin(ApplicationPlugin):
             pyinstaller_version = venv.run("pyinstaller", "--version").strip()
             io.write_line(
                 f"<b>Preparing</b> PyInstaller <b><c1>{pyinstaller_version}</b></c1> environment <debug>{venv.path}</debug>")
+
+            for requirement in self._app.poetry.package.requires:
+                pip_r = requirement.base_pep_508_name_resolved.replace(' (', '').replace(')', '')
+
+                extra_index_url = []
+                if requirement.source_name:
+                    extra_index_url = ["--extra-index-url", extra_indexes[requirement.source_name]]
+                    pip_args.extend(extra_index_url)
+
+                if validate_dependency(requirement):
+                    io.write_line(f"  - Installing <c1>{requirement}</c1>" +
+                                  (f" <debug>[{requirement.source_name}]</debug>" if requirement.source_name else ""))
+                    pip_args.append(pip_r)
+                else:
+                    io.write_line(f"  - <debug>Skipping</debug> <c1>{requirement}</c1>")
 
             for cert in self.certifi_opt_block.get('append', []):
                 cert_path = (self._app.poetry.pyproject_path.parent / cert).relative_to(
