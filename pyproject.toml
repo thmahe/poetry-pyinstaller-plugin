@@ -10,7 +10,7 @@ maintainers = [
 description = "Poetry plugin to build and/or bundle executable binaries with PyInstaller"
 license = { text = "MIT" }
 readme = "README.md"
-requires-python = ">=3.8,<3.14"
+requires-python = ">=3.9,<3.14"
 repository = "https://github.com/thmahe/poetry-pyinstaller-plugin"
 keywords = ["poetry", "plugin", "pyinstaller", "binary"]
 
@@ -35,7 +35,7 @@ classifiers = [
 version = "0.0.0"
 
 [tool.poetry.group.dev.dependencies]
-poetry = {version = "^2.0.1", python = ">=3.9,<3.14"}
+poetry = {version = "^2"}
 
 [tool.poetry-dynamic-versioning]
 enable = true
