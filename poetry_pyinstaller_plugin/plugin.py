@@ -641,7 +641,7 @@ class PyInstallerPlugin(ApplicationPlugin):
                 f"Building <c1>binaries</c1> with PyInstaller <c1>Python {venv.version_info[0]}.{venv.version_info[1]}</c1> <debug>[{platform}]</debug>")
             for t in self._targets:
                 if t.package_version is not None or t.when is None:
-                    if t.package_version.is_prerelease() and t.when != "prerelease":
+                    if t.package_version.is_prerelease() and t.when == "release":
                         continue
                     if not t.package_version.is_prerelease() and t.when == "prerelease":
                         continue
