@@ -1,12 +1,19 @@
-[tool.poetry]
+[project]
 name = "poetry-pyinstaller-plugin"
-version = "0.0.0"
+dynamic = ["version"]
+authors = [
+    { name = "Thomas Mahé", email = "contact@tmahe.dev" },
+]
+maintainers = [
+    { name = "Thomas Mahé", email = "contact@tmahe.dev" },
+]
 description = "Poetry plugin to build and/or bundle executable binaries with PyInstaller"
-authors = ["Thomas Mahé <contact@tmahe.dev>"]
-license = "MIT"
+license = { text = "MIT" }
 readme = "README.md"
+requires-python = ">=3.8,<3.14"
 repository = "https://github.com/thmahe/poetry-pyinstaller-plugin"
 keywords = ["poetry", "plugin", "pyinstaller", "binary"]
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Plugins",
@@ -24,8 +31,8 @@ classifiers = [
     "Topic :: Utilities",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.8,<3.14"
+[tool.poetry]
+version = "0.0.0"
 
 [tool.poetry.group.dev.dependencies]
 poetry = {version = "^2.0.1", python = ">=3.9,<3.14"}
@@ -33,7 +40,7 @@ poetry = {version = "^2.0.1", python = ">=3.9,<3.14"}
 [tool.poetry-dynamic-versioning]
 enable = true
 
-[tool.poetry.plugins."poetry.application.plugin"]
+[project.entry-points."poetry.application.plugin"]
 poetry-pyinstaller-plugin = "poetry_pyinstaller_plugin.plugin:PyInstallerPlugin"
 
 [build-system]
