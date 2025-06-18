@@ -601,7 +601,7 @@ class PyInstallerPlugin(ApplicationPlugin):
 
             pip_args.extend(extra_index_url)
 
-            if not self.use_poetry_install:
+            if not self.use_poetry_install and pip_args:
                 venv_pip = venv.run_pip(
                     "install",
                     "--disable-pip-version-check",
