@@ -2,6 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://poetry-pyinstaller-plugin.tmahe.fr/</loc>
-         <lastmod>2025-11-11</lastmod>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>https://poetry-pyinstaller-plugin.tmahe.fr/getting_started/commands/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>https://poetry-pyinstaller-plugin.tmahe.fr/getting_started/creating_your_first_target/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>https://poetry-pyinstaller-plugin.tmahe.fr/getting_started/installation/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>https://poetry-pyinstaller-plugin.tmahe.fr/reference/hooks/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>https://poetry-pyinstaller-plugin.tmahe.fr/reference/plugin_configuration/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>https://poetry-pyinstaller-plugin.tmahe.fr/reference/target_configuration/</loc>
+         <lastmod>2025-11-14</lastmod>
     </url>
 </urlset>
