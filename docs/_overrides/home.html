@@ -1,0 +1,90 @@
+{% extends "main.html" %}
+
+{% block htmltitle %}
+<title>Poetry Pyinstaller Plugin - Home</title>
+{% endblock %}
+
+{% block tabs %}
+{{ super() }}
+
+<style>
+
+    :root {
+        --md-text-font: "Poppins";
+    }
+
+    .md-header {
+        position: initial
+    }
+
+    .md-sidebar--secondary:not([hidden]) {
+        display: none;
+    }
+
+    @media screen and (min-width: 60em) {
+        .md-sidebar--secondary {
+            display: none
+        }
+    }
+
+    @media screen and (min-width: 76.25em) {
+        .md-sidebar--primary {
+            display: none
+        }
+    }
+
+    .md-typeset .md-button {
+        background: linear-gradient(90deg, rgb(174, 125, 246) 0%, rgb(0, 200, 245) 100%);
+        border-spacing: 2px;
+        border-width: 0;
+        border-color: transparent;
+        color: #2D2F3C;
+        transition: all 125ms, background-color 125ms, border-color 125ms;
+    }
+
+    .md-typeset .md-button--secondary {
+        background: none;
+        color: #f5f5f5;
+        border-width: 2px;
+        padding: -2px -2px -2px -2px;
+    }
+
+
+    .mdx-hero .md-button:hover {
+        color: #2D2F3C;
+        border-radius: 10px;
+        filter: drop-shadow(-10px -5px 0.5rem rgba(174, 125, 246, 0.25)) drop-shadow(10px 5px 0.5rem rgba(0, 200, 245, 0.25));
+    }
+
+    .md-typeset .md-button--secondary:hover {
+        color: rgba(228, 136, 49, 1);
+        background: transparent;
+        border-width: 2px;
+    }
+
+</style>
+<section class="mdx-container" style="margin-bottom: -90px">
+    <div class="md-grid md-typeset">
+        <div class="mdx-hero">
+            <div class="mdx-hero__image">
+                <img alt="" draggable="false" height="1200" src="assets/images/illustration.png" width="1659">
+            </div>
+            <div class="mdx-hero__content">
+                <h1>Build Executables From Python Scripts & Apps With Ease.</h1>
+                <p>{{ config.site_description }}. Set up in 5 minutes.</p>
+                <a class="md-button md-button--primar" href="{{ page.next_page.url | url }}"
+                   title="{{ page.next_page.title | e }}">
+                    Getting Started
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block content %}
+{{ super() }}
+{% endblock %}
+
+{% block footer %}
+{{ super() }}
+{% endblock %}
