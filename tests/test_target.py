@@ -150,7 +150,7 @@ class TestUtilityFunctions(TestCase):
             '--contents-directory', '_my-tool-2_internal',
             '--noconsole',
             '--nowindowed',
-            '--add-data', str(Path().resolve() / "README.md:."),
+            '--add-data', str(Path(".").resolve() / "README.md:."),
             '--log-level=WARN'
         ]
         self.target.dist_path = Path('dist').resolve()
@@ -184,7 +184,7 @@ class TestUtilityFunctions(TestCase):
             '--collect-data', 'package_c',
             '--collect-binaries', 'package_d',
             '--collect-all', 'package_e',
-            '--add-data', str(Path().resolve() / "file.txt:file.txt"),
+            '--add-data', str(Path(".").resolve() / "file.txt:file.txt"),
             '--hidden-import', 'requests',
             '--hidden-import', 'certifi',
             '--log-level=WARN'
@@ -208,14 +208,14 @@ class TestUtilityFunctions(TestCase):
 
     def test__add_include_args(self):
         expected = [
-            '--add-data', str(Path().resolve() / "README.md:."),
+            '--add-data', str(Path(".").resolve() / "README.md:."),
         ]
         args = []
         self.target._add_include_args(args)
         self.assertEqual(args, expected)
 
         expected = [
-            '--add-data', str(Path().resolve() / "file.txt:file.txt"),
+            '--add-data', str(Path(".").resolve() / "file.txt:file.txt"),
         ]
         args = []
         self.target = Target("my-tool-3", self.poetry, self.io)

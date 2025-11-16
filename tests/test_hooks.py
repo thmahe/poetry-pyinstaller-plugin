@@ -99,7 +99,7 @@ class TestPluginHook(TestCase):
         
         [notice] A new release of pip is available: 23.2.1 -> 25.3
         [notice] To update, run: pip install --upgrade pip
-        """)
+        """).replace("\n", os.linesep)
 
         self.hook._venv.run_pip = MagicMock(return_value=pip_stdout)
 
