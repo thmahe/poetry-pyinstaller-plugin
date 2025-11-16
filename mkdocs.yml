@@ -1,0 +1,119 @@
+site_name: Poetry PyInstaller Plugin
+site_url: https://poetry-pyinstaller-plugin.tmahe.fr
+site_author: Thomas Mahé <oss@tmahe.fr>
+site_description: >-
+  Lightweight extension for Poetry that makes packaging Python applications 
+  into standalone executables effortless
+
+# Repository
+repo_name: thmahe/poetry-pyinstaller-plugin
+repo_url: https://github.com/thmahe/poetry-pyinstaller-plugin
+
+theme:
+  name: material
+  favicon: assets/favicon.png
+  custom_dir: docs/_overrides
+  logo: assets/logo.png
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    scheme: slate
+    primary: black
+    accent: deep orange
+  features:
+#    - announce.dismiss
+#    - content.action.edit
+#    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    # - content.code.select
+    # - content.footnote.tooltips
+    # - content.tabs.link
+    - content.tooltips
+    # - header.autohide
+    # - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    # - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    # - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    # - toc.integrate
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: squidfunk
+      repo: mkdocs-material
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      auto_append:
+        - includes/mkdocs.md
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - mkdocstrings
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - minify:
+      minify_html: true
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: getting_started/installation.md
+      - Creating your first target: getting_started/creating_your_first_target.md
+      - Commands: getting_started/commands.md
+      - License: getting_started/license.md
+  - Reference:
+      - Plugin: reference/plugin_configuration.md
+      - Target: reference/target_configuration.md
+      - Hooks: reference/hooks.md
+
