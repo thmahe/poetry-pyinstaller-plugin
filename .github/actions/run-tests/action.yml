@@ -1,0 +1,25 @@
+name: Run tests for poetry-pyinstaller-plugin
+description: Shared steps
+
+inputs:
+  python-version:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ inputs.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ inputs.python-version }}
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          poetry install
+      - name: Run tests
+        run: |
+          cd tests
+          poetry run python3 -m unittest discover --verbose
