@@ -33,4 +33,4 @@ jobs:
     - name: Run tests
       run: |
         cd tests
-        poetry run unittest discover --verbose
+        poetry run python3 -m unittest discover --verbose
