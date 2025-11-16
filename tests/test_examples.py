@@ -13,9 +13,12 @@ class TestOneFile(TestCase):
     def test_build(self):
         global platform
         project_path = Path("examples", "one-file").resolve()
-        out = subprocess.run(("poetry", "build"), capture_output=True, cwd=project_path)
+        out = subprocess.run(("poetry", "build", "-vvv"), capture_output=True, cwd=project_path)
 
-        self.assertEqual(out.returncode, 0)
+        try:
+            self.assertEqual(out.returncode, 0)
+        except AssertionError:
+            raise RuntimeError(f"Error during build: {out.stdout.decode()}")
 
         self.assertIn(b"Building pyinstaller", out.stdout)
         self.assertIn(b"Built one-file", out.stdout)
@@ -26,10 +29,8 @@ class TestOneFile(TestCase):
         bin_name = "one-file.exe" if "win32" == sys.platform else "one-file"
         bin_path = Path("examples", "one-file", "dist", "pyinstaller", platform, bin_name).resolve()
         out = subprocess.run(bin_path, capture_output=True)
-        try:
-            self.assertEqual(out.returncode, 0)
-        except AssertionError:
-            raise RuntimeError(f"Error during build: {out.stdout.decode()}")
+
+        self.assertEqual(out.returncode, 0)
         self.assertEqual(f"Hello world !{os.linesep}".encode(), out.stdout)
 
 
@@ -37,7 +38,7 @@ class TestOneFileBundle(TestCase):
     def test_build(self):
         global platform
         project_path = Path("examples", "one-file-bundle").resolve()
-        out = subprocess.run(("poetry", "build"), capture_output=True, cwd=project_path)
+        out = subprocess.run(("poetry", "build", "-vvv"), capture_output=True, cwd=project_path)
 
         try:
             self.assertEqual(out.returncode, 0)
