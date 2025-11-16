@@ -23,7 +23,7 @@ class TestOneFile(TestCase):
 
     def test_exec(self):
         global platform
-        bin_name = "one-file.exe" if "win" in sys.platform else "one-fine"
+        bin_name = "one-file.exe" if "win" in sys.platform else "one-file"
         bin_path = Path("examples", "one-file", "dist", "pyinstaller", platform, bin_name).resolve()
         out = subprocess.run(bin_path, capture_output=True)
         self.assertEqual(out.returncode, 0)
@@ -45,7 +45,7 @@ class TestOneFileBundle(TestCase):
     def test_exec(self):
         global platform
 
-        bin_name = "one-file.exe" if "win" in sys.platform else "one-fine"
+        bin_name = "one-file.exe" if "win" in sys.platform else "one-file"
         bin_path = Path("examples", "one-file-bundle", "dist", "pyinstaller", platform, bin_name).resolve()
         out = subprocess.run(bin_path, capture_output=True)
         self.assertEqual(out.returncode, 0)
