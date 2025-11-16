@@ -57,7 +57,7 @@ Bundle executable to Wheels and register them as executable scripts.
 
 ---
 
-### noupx `boolean` { #noupx data-toc-label="noupx" }
+### no-upx `boolean` { #no-upx data-toc-label="no-upx" }
 
 Default: `false`
 
@@ -107,7 +107,7 @@ Set the icon for executables.
 
 Use `NONE` to not apply any icon, thereby making the OS to show system default.
 
-### uac_admin `boolean` { #uac_admin data-toc-label="uac_admin" }
+### uac-admin `boolean` { #uac-admin data-toc-label="uac-admin" }
 
 Default: `false`
 
@@ -115,7 +115,7 @@ Using this option creates a Manifest that will request elevation upon applicatio
 
 ---
 
-### uac_uiaccess `boolean` { #uac_uiaccess data-toc-label="uac_uiaccess" }
+### uac-uiaccess `boolean` { #uac-uiaccess data-toc-label="uac-uiaccess" }
 
 Default: `false`
 
@@ -123,7 +123,7 @@ Using this option allows an elevated application to work with Remote Desktop.
 
 ---
 
-### argv_emulation `boolean` { #argv_emulation data-toc-label="argv_emulation" }
+### argv-emulation `boolean` { #argv-emulation data-toc-label="argv-emulation" }
 
 Default: `false`
 
@@ -142,7 +142,7 @@ Target architecture. Accepted values: `x86_64`, `arm64`, `universal2`.
 
 ---
 
-### hiddenimport `str | list[str]` { #hiddenimport data-toc-label="hiddenimport" }
+### hidden-import `str | list[str]` { #hidden-import data-toc-label="hidden-import" }
 
 Default: `null`
 
@@ -150,7 +150,7 @@ Hidden imports needed by the executable.
 
 ---
 
-### runtime_hooks `list` { #runtime_hooks data-toc-label="runtime_hooks" }
+### runtime-hooks `list` { #runtime-hooks data-toc-label="runtime-hooks" }
 
 Default: `null`
 
@@ -160,7 +160,7 @@ These hooks are executed before any other code or module to set up special featu
 
 ---
 
-### add_version `bool` { #add_version data-toc-label="add_version" }
+### add-version `bool` { #add-version data-toc-label="add-version" }
 
 Default: `false`
 
@@ -235,7 +235,7 @@ File(s) to include with executable. `{source: destination}`
 
 ---
 
-### exclude-include `boolean` { #exclude-include data-toc-label="exclude-include" }
+### exclude-poetry-include `boolean` { #exclude-poetry-include data-toc-label="exclude-poetry-include" }
 
 Default: `false`
 
