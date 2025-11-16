@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
@@ -70,11 +71,11 @@ class TestLoggingMixin(TestCase):
             "<fg=yellow;options=bold>[poetry-pyinstaller-plugin]</> <debug>msg</debug>")
 
     def test_command(self):
-        self.logger.debug_command("line1\nline2")
+        self.logger.debug_command(f"line1{os.linesep}line2")
         self.mock_write_line.assert_not_called()
 
         self.enable_debug()
-        self.logger.debug_command("line1\nline2")
+        self.logger.debug_command(f"line1{os.linesep}line2")
         self.mock_write_line.assert_any_call(
             "<fg=yellow;options=bold>[poetry-pyinstaller-plugin]</> <debug> + line1</debug>")
         self.mock_write_line.assert_any_call(

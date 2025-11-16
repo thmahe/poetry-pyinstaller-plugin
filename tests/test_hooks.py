@@ -1,3 +1,4 @@
+import os
 import textwrap
 from pathlib import Path
 from typing import Callable
@@ -76,7 +77,7 @@ class TestPluginHook(TestCase):
     def test_run(self):
         self.hook.debug = MagicMock()
         self.hook._venv = MagicMock()
-        self.hook._venv.run = MagicMock(return_value="hello world !\n")
+        self.hook._venv.run = MagicMock(return_value=f"hello world !{os.linesep}")
 
         self.hook.run("echo", "hello world !")
 

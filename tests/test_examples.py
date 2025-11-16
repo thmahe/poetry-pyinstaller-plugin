@@ -1,5 +1,7 @@
+import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 from unittest import TestCase
 
@@ -21,10 +23,11 @@ class TestOneFile(TestCase):
 
     def test_exec(self):
         global platform
-        bin_path = Path("examples", "one-file", "dist", "pyinstaller", platform, "one-file").resolve()
+        bin_name = "one-file.exe" if "win" in sys.platform else "one-fine"
+        bin_path = Path("examples", "one-file", "dist", "pyinstaller", platform, bin_name).resolve()
         out = subprocess.run(bin_path, capture_output=True)
         self.assertEqual(out.returncode, 0)
-        self.assertEqual(b"Hello world !\n", out.stdout)
+        self.assertEqual(f"Hello world !{os.linesep}".encode(), out.stdout)
 
 
 class TestOneFileBundle(TestCase):
@@ -41,7 +44,9 @@ class TestOneFileBundle(TestCase):
 
     def test_exec(self):
         global platform
-        bin_path = Path("examples", "one-file-bundle", "dist", "pyinstaller", platform, "one-file").resolve()
+
+        bin_name = "one-file.exe" if "win" in sys.platform else "one-fine"
+        bin_path = Path("examples", "one-file-bundle", "dist", "pyinstaller", platform, bin_name).resolve()
         out = subprocess.run(bin_path, capture_output=True)
         self.assertEqual(out.returncode, 0)
-        self.assertEqual(b"Hello world !\n", out.stdout)
+        self.assertEqual(f"Hello world !{os.linesep}".encode(), out.stdout)
