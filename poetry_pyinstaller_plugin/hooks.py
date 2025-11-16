@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 import importlib.util
+import os
 from pathlib import Path
 from typing import Callable, Literal, Optional
 
@@ -71,7 +72,7 @@ class PluginHook(utils.LoggingMixin):
         """
         self.debug(f"Running '{command} {' '.join(args)}'")
         output = self._venv.run(command, *args)
-        for line in output.split('\n'):
+        for line in output.split(os.linesep):
             self.debug("++ " + line)
         return output
 
@@ -81,7 +82,7 @@ class PluginHook(utils.LoggingMixin):
         """
         self.debug(f"Running 'pip {' '.join(args)}'")
         output = self._venv.run_pip(*args)
-        for line in output.split('\n'):
+        for line in output.split(os.linesep):
             self.debug("++ " + line)
         return output
 
