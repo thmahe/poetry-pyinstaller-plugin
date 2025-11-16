@@ -10,7 +10,7 @@ maintainers = [
 description = "Poetry plugin to build and/or bundle executable binaries with PyInstaller"
 license = { text = "MIT" }
 readme = "README.md"
-requires-python = ">=3.9,<3.14"
+requires-python = ">=3.10,<3.14"
 repository = "https://github.com/thmahe/poetry-pyinstaller-plugin"
 keywords = ["poetry", "plugin", "pyinstaller", "binary"]
 
