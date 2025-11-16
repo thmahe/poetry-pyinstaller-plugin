@@ -23,10 +23,11 @@ class _MetaExample(TestCase):
         project_path = Path("examples", self.name).resolve()
         out = subprocess.run(("poetry", "build", "-vvv"), capture_output=True, cwd=project_path)
         build_stdout = out.stdout.decode()
+        build_stderr = out.stderr.decode()
         try:
             self.assertEqual(out.returncode, 0)
         except AssertionError:
-            raise RuntimeError(f"Error during '{self.name}' build: {os.linesep}{build_stdout}")
+            raise RuntimeError(f"Error during '{self.name}' build: {os.linesep}{build_stdout}{build_stderr}")
 
         self.assertIn("Building pyinstaller", build_stdout)
         self.assertIn(f"Built {self.name}", build_stdout)
