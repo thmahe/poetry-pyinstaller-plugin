@@ -4,12 +4,12 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 
-[tool.poetry-pyinstaller-plugin.targets.one-file]
+[tool.poetry-pyinstaller-plugin.targets.one-file-bundle]
 source = "test_package/main.py"
 type = "onefile"
 bundle = true
 
-[tool.poetry-pyinstaller-plugin.targets.one-file.package]
+[tool.poetry-pyinstaller-plugin.targets.one-file-bundle.package]
 "README.md" = "."
 
 [tool.poetry.requires-plugins]
