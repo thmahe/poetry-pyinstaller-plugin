@@ -1,0 +1,24 @@
+[project]
+name = "test_package"
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+
+[tool.poetry-pyinstaller-plugin.targets.one-file]
+source = "test_package/main.py"
+type = "onefile"
+
+[tool.poetry-pyinstaller-plugin.targets.one-file.package]
+"README.md" = "."
+
+[tool.poetry.requires-plugins]
+poetry-pyinstaller-plugin = { allow-prereleases = true }
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pyinstaller (>=6.16.0,<7.0.0)"
+]
