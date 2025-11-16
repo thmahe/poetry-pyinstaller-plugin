@@ -46,7 +46,7 @@ pyinstaller = "^6.16.0"
 enable = true
 
 [tool.poetry.requires-plugins]
-poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }
+poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"], markers = "sys_platform != 'win32'" }
 
 [project.entry-points."poetry.application.plugin"]
 poetry-pyinstaller-plugin = "poetry_pyinstaller_plugin.plugin:PyInstallerPlugin"
