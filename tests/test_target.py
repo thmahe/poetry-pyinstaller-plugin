@@ -175,7 +175,7 @@ class TestUtilityFunctions(TestCase):
             '--uac-admin',
             '--uac-uiaccess',
             '--argv-emulation',
-            '--icon', 'icon.ico',
+            '--icon', str(Path('icon.ico').resolve()),
             '--target-arch', 'amd64',
             '--runtime-hook', 'hooks/my_hook.py',
             '--copy-metadata', 'requests',
