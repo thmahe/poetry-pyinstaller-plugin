@@ -125,7 +125,7 @@ class Target(utils.LoggingMixin):
         ]
 
         if self.icon:
-            args.extend(("--icon", self.icon))
+            args.extend(("--icon", Path(self.icon).resolve()))
 
         if self.arch:
             args.extend(("--target-arch", self.arch))
