@@ -2,7 +2,7 @@
 name = "test_package"
 version = "0.1.0"
 readme = "README.md"
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.10,<3.15"
 
 [tool.poetry-pyinstaller-plugin.targets.one-file-bundle]
 source = "test_package/main.py"
