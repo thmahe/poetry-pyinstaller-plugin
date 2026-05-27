@@ -7,6 +7,8 @@ requires-python = ">=3.10,<3.15"
 [tool.poetry-pyinstaller-plugin.targets.one-file]
 source = "test_package/main.py"
 type = "onefile"
+with-poetry-extras = ["mysql", "pgsql"]
+with-poetry-groups = ["internal"]
 
 [tool.poetry-pyinstaller-plugin.targets.one-file.package]
 "README.md" = "."
@@ -22,3 +24,10 @@ build-backend = "poetry.core.masonry.api"
 dev = [
     "pyinstaller (>=6.16.0,<7.0.0)"
 ]
+internal = [
+    "requests"
+]
+
+[tool.poetry.extras]
+mysql = ["mysqlclient"]
+pgsql = ["psycopg2"]

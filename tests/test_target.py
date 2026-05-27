@@ -315,7 +315,19 @@ class TestUtilityFunctions(TestCase):
         self.mock_venv.run = MagicMock()
         self.target._install_dependencies(self.mock_venv)
 
-        mock_log.assert_any_call("<debug>run 'poetry install --all-extras --all-groups'</debug>")
+        mock_log.assert_any_call("<debug>run 'poetry install --all-groups --all-extras'</debug>")
+        self.mock_venv.run.assert_called()
+
+    def test__install_custom_dependencies(self):
+        mock_log = MagicMock()
+        self.target.log = mock_log
+        self.mock_venv.run = MagicMock()
+        self.target.with_poetry_groups = ["internal", "tests"]
+        self.target.with_poetry_extras = ["sql"]
+
+        self.target._install_dependencies(self.mock_venv)
+
+        mock_log.assert_any_call("<debug>run 'poetry install --with internal --with tests --extras sql'</debug>")
         self.mock_venv.run.assert_called()
 
     def test__deploy_certificates(self):
