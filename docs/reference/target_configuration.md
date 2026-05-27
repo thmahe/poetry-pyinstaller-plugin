@@ -243,3 +243,31 @@ Disable `[tool.poetry.include]` and use plugin/target settings instead.
 
 ---
 
+### with-poetry-groups `bool | list[str]` { #with-poetry-groups data-toc-label="with-poetry-groups" }
+
+Default: `true`
+
+Include poetry dependency groups defined in `pyproject.toml`.
+
+**Supported values:**
+
+* `true`: Install all group(s)
+* `false`: Do not install any group(s)
+* `list[str]`: Include given group(s) within target environment
+
+---
+
+### with-poetry-extras `bool | list[str]` { #with-poetry-extras data-toc-label="with-poetry-extras" }
+
+Default: `true`
+
+Include poetry extras defined in `pyproject.toml`.
+
+**Supported values:**
+
+* `true`: Install all extra(s)
+* `false`: Do not install any extra(s)
+* `list[str]`: Include given extra(s) within target environment
+
+---
+
