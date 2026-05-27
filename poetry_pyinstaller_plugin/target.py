@@ -52,6 +52,8 @@ class Target(utils.LoggingMixin):
     copy_metadata_config: List[str]
     recursive_copy_metadata_config: List[str]
     package_config: Dict[str, str]
+    with_poetry_groups: Union[bool, List[str]]
+    with_poetry_extras: Union[bool, List[str]]
 
     def __init__(self, prog: str, poetry: Poetry, io: IO, **kwargs):
         super().__init__(io, **kwargs)
@@ -83,7 +85,9 @@ class Target(utils.LoggingMixin):
             "arch": None,
             "hidden-import": None,
             "when": None,
-            "add-version": False
+            "add-version": False,
+            "with-poetry-groups": True,
+            "with-poetry-extras": True
         }
         for field, default in fields.items():
             self.__setattr__(field.replace("-", "_"), self.lookup(field, default))
@@ -245,7 +249,24 @@ class Target(utils.LoggingMixin):
         self.log(f"  - Built <success>{self.prog}</success>")
 
     def _install_dependencies(self, venv: Env):
-        args = ("poetry", "install", "--all-extras", "--all-groups")
+        args = ("poetry", "install")
+
+        # Install poetry dependency groups
+        if isinstance(self.with_poetry_groups, bool):
+            if self.with_poetry_groups:
+                args += ("--all-groups", )
+        elif isinstance(self.with_poetry_groups, list):
+            for group in self.with_poetry_groups:
+                args += ("--with", group)
+
+        # Install poetry dependency extras
+        if isinstance(self.with_poetry_extras, bool):
+            if self.with_poetry_extras:
+                args += ("--all-extras", )
+        elif isinstance(self.with_poetry_extras, list):
+            for extra in self.with_poetry_extras:
+                args += ("--extras", extra)
+
         self.debug(f"run '{' '.join(args)}'")
         self.debug_command(venv.run(*args))
 
