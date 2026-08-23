@@ -100,10 +100,10 @@ class TestUtilityFunctions(TestCase):
         command = MagicMock()
 
         command.option.return_value = None
-        self.assertEqual(get_output_path(command), Path("dist").resolve())
+        self.assertEqual(get_output_path(Path(), command), Path("dist").resolve())
 
         command.option.return_value = "custom"
-        self.assertEqual(get_output_path(command), Path("custom").resolve())
+        self.assertEqual(get_output_path(Path(), command), Path("custom").resolve())
 
 
 class TestPyProjectConfig(TestCase):

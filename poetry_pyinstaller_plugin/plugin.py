@@ -69,8 +69,9 @@ class PyInstallerBuildCommand(BuildCommand, utils.LoggingMixin):
 
     def handle(self) -> int:  # pragma: nocover
         env_manager = EnvManager(self._app.poetry, io=self._io)
+        project_path = self._app.project_directory.resolve()
         venv = env_manager.create_venv()
-        venv.run("poetry", "install", "--all-extras", "--all-groups")
+        venv.run("poetry", "--project", f"{project_path}", "install", "--all-extras", "--all-groups")
         venv_version = f"python{venv.version_info[0]}.{venv.version_info[1]}"
         pyinstaller_version = venv.run("pyinstaller", "--version").strip()
 
@@ -97,7 +98,7 @@ class PyInstallerBuildCommand(BuildCommand, utils.LoggingMixin):
 
     def bundle_wheels(self):  # pragma: nocover
         wheels = []
-        output_path = utils.get_output_path(self)
+        output_path = utils.get_output_path(self._app.project_directory.resolve(), self)
         for file in os.listdir(output_path):
             if fnmatch.fnmatch(file, '*-py3-none-any.whl'):
                 wheels.append(file)

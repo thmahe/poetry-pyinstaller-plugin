@@ -78,9 +78,11 @@ def get_base_modules_path(poetry: Poetry) -> List[Path]:
     return [module.base for module in WheelBuilder(poetry)._module.includes]  # noqa
 
 
-def get_output_path(command: BuildCommand) -> Path:
+def get_output_path(project_path: Path, command: BuildCommand) -> Path:
     # True when --output specified
     if dist_path := command.option("output"):  # noqa
+        if dist_path == "dist": # Default
+            return (project_path / dist_path).resolve()
         return Path(dist_path).resolve()
     else:
-        return Path("dist").resolve()
+        return (project_path / Path("dist")).resolve()

@@ -25,6 +25,7 @@ from poetry_pyinstaller_plugin import utils
 @dataclasses.dataclass(init=False)
 class Target(utils.LoggingMixin):
     package_version: PEP440Version
+    project_path: Path
     dist_path: Path
     work_path: Path
     platform: str
@@ -69,6 +70,7 @@ class Target(utils.LoggingMixin):
         self.source = (poetry.pyproject_path.parent / self.lookup("source", None)).resolve()
         self.platform = utils.get_platform(poetry)
         self.package_version = self._get_package_version(poetry)
+        self.project_path = poetry.file.path.parent.resolve()
         self.work_path = (poetry.pyproject_path.parent / 'build' / self.platform).resolve()
 
         fields = {
@@ -229,7 +231,7 @@ class Target(utils.LoggingMixin):
         env_manager = EnvManager(poetry, io=self._io)
         venv = env_manager.create_venv()
 
-        self.dist_path = utils.get_output_path(command) / "pyinstaller" / self.platform
+        self.dist_path = utils.get_output_path(self.project_path, command) / "pyinstaller" / self.platform
 
         if self.skip:
             self.warning(f" <info>-</info> Skipping {self.prog} (on {self.when} only)")
@@ -249,12 +251,14 @@ class Target(utils.LoggingMixin):
         self.log(f"  - Built <success>{self.prog}</success>")
 
     def _install_dependencies(self, venv: Env):
-        args = ("poetry", "install")
+        args = ("poetry",
+                "--project", str(self.project_path),
+                "install")
 
         # Install poetry dependency groups
         if isinstance(self.with_poetry_groups, bool):
             if self.with_poetry_groups:
-                args += ("--all-groups", )
+                args += ("--all-groups",)
         elif isinstance(self.with_poetry_groups, list):
             for group in self.with_poetry_groups:
                 args += ("--with", group)
@@ -262,7 +266,7 @@ class Target(utils.LoggingMixin):
         # Install poetry dependency extras
         if isinstance(self.with_poetry_extras, bool):
             if self.with_poetry_extras:
-                args += ("--all-extras", )
+                args += ("--all-extras",)
         elif isinstance(self.with_poetry_extras, list):
             for extra in self.with_poetry_extras:
                 args += ("--extras", extra)

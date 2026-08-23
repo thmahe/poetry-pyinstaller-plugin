@@ -1,6 +1,7 @@
 import logging
 import os
 from pathlib import Path
+from tempfile import tempdir
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -314,8 +315,10 @@ class TestUtilityFunctions(TestCase):
         self.target.log = mock_log
         self.mock_venv.run = MagicMock()
         self.target._install_dependencies(self.mock_venv)
+        test_project_path = Path("test_project").resolve()
+        self.target.project_path = test_project_path
 
-        mock_log.assert_any_call("<debug>run 'poetry install --all-groups --all-extras'</debug>")
+        mock_log.assert_any_call(f"<debug>run 'poetry --project {test_project_path} install --all-groups --all-extras'</debug>")
         self.mock_venv.run.assert_called()
 
     def test__install_custom_dependencies(self):
@@ -324,10 +327,11 @@ class TestUtilityFunctions(TestCase):
         self.mock_venv.run = MagicMock()
         self.target.with_poetry_groups = ["internal", "tests"]
         self.target.with_poetry_extras = ["sql"]
+        test_project_path = Path("test_project").resolve()
+        self.target.project_path = test_project_path
 
         self.target._install_dependencies(self.mock_venv)
-
-        mock_log.assert_any_call("<debug>run 'poetry install --with internal --with tests --extras sql'</debug>")
+        mock_log.assert_any_call(f"<debug>run 'poetry --project {test_project_path} install --with internal --with tests --extras sql'</debug>")
         self.mock_venv.run.assert_called()
 
     def test__deploy_certificates(self):
