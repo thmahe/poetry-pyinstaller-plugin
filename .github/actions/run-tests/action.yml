@@ -16,6 +16,8 @@ runs:
     - name: Install Poetry
       shell: bash
       run: |
+        echo ":warning:this is a warning msg"
+        echo ":WARN:this is another warning msg"
         python -m pip install --upgrade pip
         python -m pip install poetry
         poetry install
